@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Úverový dotazník – Jozef Gergo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<style>
+/* Layout: jeden stĺpec, očíslované sekcie, otázky ako chipy; podotázky sa zobrazia podľa odpovedí. Rovnaký vizuál ako zdravotný dotazník, akcent v tmavozlatej. */
+:root{
+  --bg:#f6f5f2; --paper:#ffffff; --fg:#1d2126; --muted:#5d646c; --line:#d9d6cf;
+  --accent:#8a6a1f; --accent-soft:#f3ecdc; --warn:#9a5b16; --warn-soft:#fbf1e3; --ok:#2f6b3a; --bad:#b43b2e;
+  --font-body:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --font-head:"IBM Plex Serif",Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#15181b; --paper:#1e2226; --fg:#e8e6e1; --muted:#a3a9b0; --line:#3a4046; --accent:#d6b25a; --accent-soft:#2f2a1b; --warn:#e3a85a; --warn-soft:#3a2d1a; --ok:#8cc796; --bad:#f08a6d; color-scheme:dark }
+}
+:root[data-theme="dark"]{ --bg:#15181b; --paper:#1e2226; --fg:#e8e6e1; --muted:#a3a9b0; --line:#3a4046; --accent:#d6b25a; --accent-soft:#2f2a1b; --warn:#e3a85a; --warn-soft:#3a2d1a; --ok:#8cc796; --bad:#f08a6d; color-scheme:dark }
+*{box-sizing:border-box}
+html{font-size:16px}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);line-height:1.5;padding-block:0 4rem;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+[hidden]{display:none!important}
+.hidden{display:none!important}
+.wrap{max-width:52rem;margin:0 auto}
+header.top{padding:2rem 0 1rem;border-bottom:2px solid var(--accent)}
+header.top .kicker{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+h1{font-family:var(--font-head);font-weight:600;font-size:2rem;margin:.2rem 0 .4rem;text-wrap:balance}
+h2{font-family:var(--font-head);font-weight:600;font-size:1.35rem;margin:0 0 .25rem;text-wrap:balance}
+h3.sub{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:1.3rem 0 .6rem;font-weight:600;grid-column:1/-1;border-top:1px dashed var(--line);padding-top:.9rem}
+h3.sub:first-child{border-top:0;padding-top:0;margin-top:.2rem}
+p{margin:.4rem 0}
+.lead{color:var(--muted);max-width:40rem}
+.sekcia{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:1.4rem 1.5rem;margin-top:1.25rem}
+.sekcia > .shead{display:flex;gap:.9rem;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:.6rem;margin-bottom:1rem}
+.sekcia > .shead .num{font-family:var(--font-head);color:var(--accent);font-size:1.6rem;font-weight:600;line-height:1}
+.sekcia > .shead .sub{color:var(--muted);font-size:.9rem}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem 1rem}
+@media (max-width:600px){.grid{grid-template-columns:minmax(0,1fr)}}
+.q{margin:.1rem 0;min-width:0}
+.q.wide{grid-column:1/-1}
+.q > .lbl, label.lbl{display:block;font-weight:500;margin-bottom:.3rem;font-size:.95rem}
+.q .hint{display:block;color:var(--muted);font-size:.85rem;font-weight:400;margin-top:.15rem}
+.req{color:var(--bad)}
+input[type=text],input[type=number],input[type=date],input[type=email],input[type=tel],select,textarea{width:100%;font:inherit;color:var(--fg);background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:.5rem .6rem;min-width:0}
+textarea{min-height:4.5rem;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.unit{position:relative}
+.unit input{padding-right:3.2rem}
+.unit span{position:absolute;right:.6rem;top:50%;transform:translateY(-50%);font-size:.8rem;color:var(--muted)}
+.opts{display:flex;flex-wrap:wrap;gap:.4rem .5rem}
+.opts label{display:inline-flex;align-items:center;gap:.4rem;border:1px solid var(--line);border-radius:999px;padding:.3rem .75rem;cursor:pointer;background:var(--paper);font-size:.93rem}
+.opts label:has(input:checked){background:var(--accent-soft);border-color:var(--accent)}
+.opts label:has(input:focus-visible){outline:2px solid var(--accent)}
+.opts input{margin:0;accent-color:var(--accent)}
+.note{background:var(--warn-soft);border-left:3px solid var(--warn);padding:.7rem 1rem;border-radius:0 6px 6px 0;margin:.4rem 0 .6rem;font-size:.93rem;grid-column:1/-1}
+.note b{color:var(--warn)}
+.toggle{display:flex;gap:.6rem;align-items:center;padding:.7rem .9rem;background:var(--accent-soft);border-radius:6px;font-weight:500;cursor:pointer;margin-bottom:.9rem}
+.toggle input{accent-color:var(--accent);width:1.1rem;height:1.1rem}
+.rep{grid-column:1/-1;display:flex;flex-direction:column;gap:.7rem}
+.row{border:1px solid var(--line);border-radius:6px;padding:.8rem 1rem 1rem;background:var(--bg)}
+.row .rowhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;font-size:.85rem;color:var(--muted);font-weight:600}
+.row .rm{background:none;border:0;color:var(--bad);font:inherit;font-size:.85rem;cursor:pointer;padding:.2rem .3rem}
+.add{align-self:flex-start;background:var(--paper);border:1px dashed var(--accent);color:var(--accent);border-radius:4px;padding:.5rem .9rem;font:inherit;font-size:.9rem;cursor:pointer;font-weight:500}
+.docs{display:grid;grid-template-columns:repeat(auto-fill,minmax(16rem,1fr));gap:.3rem .8rem;grid-column:1/-1}
+.docs label{display:flex;gap:.5rem;align-items:flex-start;padding:.3rem .4rem;border-radius:4px;cursor:pointer;font-size:.93rem}
+.docs label:hover{background:var(--accent-soft)}
+.docs input{margin-top:.25rem;accent-color:var(--accent);flex:none}
+.tools{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem}
+button{font:inherit;font-weight:500;border-radius:4px;padding:.6rem 1rem;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff}
+button.sec{background:var(--paper);color:var(--accent)}
+button.ghost{background:transparent;border-color:var(--line);color:var(--muted)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.big{font-size:1.15rem;padding:.9rem 2.2rem;border-radius:6px}
+button:disabled{opacity:.6;cursor:wait}
+.status{font-size:.88rem;color:var(--muted);margin-top:.5rem;min-height:1.2rem}
+.steps{counter-reset:k;padding-left:0;list-style:none;margin:.5rem 0}
+.steps li{counter-increment:k;display:flex;gap:.8rem;align-items:center;margin:.5rem 0;font-size:1.05rem;font-weight:500}
+.steps li::before{content:counter(k);flex:none;width:1.7rem;height:1.7rem;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:600}
+.small{font-size:.85rem;color:var(--muted)}
+.chk{display:flex;gap:.6rem;align-items:flex-start;margin:.6rem 0;cursor:pointer}
+.chk input{margin-top:.3rem;accent-color:var(--accent);flex:none}
+.progress{position:sticky;top:0;z-index:5;background:var(--bg);padding:.5rem 0;display:flex;gap:1rem;align-items:center;font-size:.85rem;color:var(--muted);border-bottom:1px solid var(--line)}
+.progress .bar{flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.progress .bar i{display:block;height:100%;background:var(--accent);width:0}
+.invalid input,.invalid select,.invalid textarea,.invalid .opts label{border-color:var(--bad)!important}
+.poz{list-style:none;padding:0;margin:.6rem 0;display:grid;gap:.5rem}
+.poz li{display:flex;flex-wrap:wrap;gap:.5rem .8rem;align-items:center;border:1px solid var(--line);border-radius:6px;padding:.6rem .8rem;background:var(--paper)}
+.poz li .pt{flex:1 1 14rem;min-width:0}
+.poz li .pt b{display:block}
+.poz li .pt span{font-size:.85rem;color:var(--muted)}
+.poz li.ok{border-color:var(--ok)}
+.poz li.ok .pt b::after{content:" ✓";color:var(--ok)}
+.poz button{padding:.45rem .8rem;font-size:.9rem}
+.prilohy{display:grid;grid-template-columns:repeat(auto-fill,minmax(9rem,1fr));gap:.7rem;margin-top:.8rem}
+.pr{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--paper);display:flex;flex-direction:column}
+.pr img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.pr .pdf{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--accent);background:var(--accent-soft)}
+.pr .pn{font-size:.78rem;padding:.3rem .4rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pr button{border-radius:0;padding:.35rem;font-size:.8rem}
+.hotovo{border:2px solid var(--ok);border-radius:6px;padding:1rem 1.2rem;margin-top:1rem}
+.hotovo h3{color:var(--ok);font-size:1.3rem;font-family:var(--font-head);margin:0 0 .4rem}
+.suhrn{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.82rem;background:var(--paper);border:1px solid var(--line);padding:1rem;border-radius:6px;max-height:24rem;overflow:auto}
+@media (max-width:480px){ .sekcia{padding:1rem} h1{font-size:1.6rem} }
+@media print{
+  @page{margin:14mm}
+  body{background:#fff;color:#000;padding:0}
+  .noprint,.progress,.tools,.status,.add,.rm{display:none!important}
+  .sekcia{border:0;padding:0;margin-top:1.2rem;break-inside:auto}
+  .row{background:#fff;border-color:#999}
+  .opts label{border-color:#999}
+  .opts label:not(:has(input:checked)){display:none}
+  .opts label:has(input:checked){background:#e6e6e6;font-weight:600}
+  input,textarea,select{border:0;border-bottom:1px solid #999;border-radius:0;background:#fff;color:#000}
+  textarea{min-height:2.5rem}
+  .docs label:not(:has(input:checked)){display:none}
+  .q.hidden{display:none!important}
+  a{color:#000;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="kicker">Jozef Gergo · finančný konzultant · hypotéky a úvery na bývanie</div>
+  <h1>Úverový dotazník</h1>
+  <p class="lead">Slúži na prípravu hypotéky alebo úveru na bývanie tak, aby som vedel vybrať banku a podmienky správne hneď na prvýkrát. Vyplňte ho sami, pravdivo a úplne. Otázky, ktoré sa Vás netýkajú, sa skryjú.</p>
+</header>
+
+<div class="progress noprint" aria-live="polite"><span id="pgtxt">Vyplnené 0 %</span><div class="bar"><i id="pgbar"></i></div><span class="small">Rozpracované sa ukladá v tomto prehliadači.</span></div>
+
+<section class="sekcia noprint" id="s-uvod">
+  <ol class="steps">
+    <li>Odpovedzte na otázky. Pri niektorých odpovediach sa zobrazia podrobnosti.</li>
+    <li>Odfoťte alebo nahrajte doklady, ktoré už máte.</li>
+    <li>Stlačte Odoslať.</li>
+  </ol>
+  <p class="small">Trvá 15 – 25 minút. Nemusíte to dokončiť naraz. Ak si niečo nepamätáte presne, uveďte odhad. Rodné číslo a číslo dokladu sú nepovinné – doplníme ich spolu do žiadosti.</p>
+  <p class="small"><b>Prečo úplne:</b> banka vidí všetky Vaše úvery a karty v úverových registroch a príjem overuje podľa dokladov. Zamlčaný záväzok škodí viac než vysoká splátka.</p>
+</section>
+
+<form id="form" novalidate></form>
+
+<section class="sekcia" id="s-prilohy">
+  <div class="shead"><span class="num" id="numPrilohy">12</span><div><h2>Doklady – fotky a súbory</h2><div class="sub">Podľa toho, čo ste uviedli, budem potrebovať tieto doklady. Odfoťte ich mobilom alebo nahrajte súbor (fotka, PDF).</div></div></div>
+  <ul class="poz" id="poz"></ul>
+  <div class="tools noprint">
+    <button type="button" class="sec" id="btnFoto">Odfotiť iný dokument</button>
+    <button type="button" class="sec" id="btnFile">Nahrať iný súbor</button>
+    <input type="file" id="fFoto" accept="image/*" capture="environment" hidden>
+    <input type="file" id="fFile" accept="image/*,application/pdf" multiple hidden>
+  </div>
+  <p class="small noprint">Fotografujte pri dobrom svetle, celú stranu, text čitateľný. Ak doklad ešte nemáte, nevadí – pošlite, čo máte, zvyšok doriešime spolu.</p>
+  <div id="prilohy" class="prilohy"></div>
+</section>
+
+<section class="sekcia" id="s-zaver">
+  <div class="shead"><span class="num" id="numZaver">13</span><div><h2>Odoslanie</h2></div></div>
+  <label class="chk"><input type="checkbox" id="v_pravda"><span>Vyhlasujem, že uvedené údaje sú pravdivé a úplné a žiadny záväzok ani príjem som nezamlčal/a. Beriem na vedomie, že banka údaje overuje v úverových registroch a podľa dokladov a že nepravdivé údaje môžu viesť k zamietnutiu žiadosti. <span class="req">*</span></span></label>
+  <label class="chk"><input type="checkbox" id="v_gdpr"><span>Súhlasím, aby môj finančný konzultant Jozef Gergo (podriadený finančný agent, MyLife Slovensko, a.s.) tieto údaje a priložené doklady použil na posúdenie úverovej žiadosti, prípravu ponuky a ich odovzdanie banke, ktorú si vyberiem. Môžem požiadať o ich vymazanie. <span class="req">*</span></span></label>
+  <div class="tools noprint" style="margin-top:1.2rem">
+    <button type="button" id="btnSend" class="big">Odoslať</button>
+    <button type="button" class="ghost" id="btnClear">Začať odznova</button>
+  </div>
+  <div class="status" id="status" aria-live="polite"></div>
+  <div id="hotovo" class="hotovo" hidden>
+    <h3>Odoslané. Ďakujem.</h3>
+    <p>Dotazník aj prílohy som dostal. Ozvem sa Vám s návrhom riešenia. Ak si na niečo spomeniete dodatočne, stačí napísať alebo zavolať.</p>
+    <p class="small" id="hotovoKontakt"></p>
+  </div>
+  <div id="fallback" class="note noprint" hidden>Táto kópia dotazníka nie je napojená na odosielanie. Tlačidlo „Odoslať“ uloží súbor s odpoveďami do Vášho zariadenia – pošlite mi ho prosím e-mailom na <b id="kEmail"></b>.</div>
+</section>
+
+<section class="sekcia noprint" id="s-konzultant" hidden>
+  <div class="shead"><span class="num">K</span><div><h2>Pre konzultanta</h2><div class="sub">Načítaj súbor odpovede.json – formulár sa vyplní aj s prílohami, môžeš ho vytlačiť do PDF alebo prepísať do kalkulačky.</div></div></div>
+  <div class="q"><label class="lbl" for="imp">Načítať súbor s odpoveďami (.json)</label><input type="file" id="imp" accept=".json,application/json"></div>
+  <div class="tools"><button type="button" class="sec" id="btnSuhrn">Zobraziť textový súhrn</button><button type="button" class="sec" id="btnCopy">Skopírovať súhrn</button><button type="button" class="sec" id="btnPdf">Vytlačiť / PDF</button></div>
+  <pre class="suhrn" id="suhrn" hidden></pre>
+</section>
+
+<p class="small noprint" style="margin-top:1.5rem;text-align:center"><a href="#" id="kLink" style="color:var(--muted)">Pre konzultanta</a></p>
+</div>
+
+<script>
+/* ====== NASTAVENIE KONZULTANTA ====== */
+const KONZULTANT = { meno: "Jozef Gergo", email: "jozef.gergo@mylife.sk", tel: "",
+  url: "https://script.google.com/macros/s/AKfycbxWVeQuZV6uyRUIyJ5LBQg61lP1f1EkA0K3raggdqAeqm0RlZ3Ft53_Eb9AgOMGbOrs/exec" };
+const VERZIA = "2026-10";
+const EUR = '€';
+var CONSULTANT_NAME = KONZULTANT.meno;
+
+// ---------- schema ----------
+var UCELY = ['Kúpa bytu','Kúpa rodinného domu','Kúpa pozemku','Výstavba domu','Rekonštrukcia / dostavba','Refinancovanie existujúceho úveru','Vyplatenie spoluvlastníka / dedičstvo','Bezúčelový (americká hypotéka)','Kombinácia účelov'];
+var STAV = ['Hľadám nehnuteľnosť','Mám vybranú, nie je rezervovaná','Podpísaná rezervačná zmluva','Podpísaná kúpna / budúca kúpna zmluva','Refinancujem, nehnuteľnosť už vlastním'];
+var ZDROJ = ['Vlastné úspory','Predaj inej nehnuteľnosti','Dar od rodiny','Pôžička od rodiny','Stavebné sporenie','Investície / cenné papiere','Iný úver','Nemám vlastné zdroje'];
+var ROD = ['Slobodný / slobodná','Ženatý / vydatá','Rozvedený / rozvedená','Vdovec / vdova','Druh / družka'];
+var VZD = ['Základné','Stredné bez maturity','Stredné s maturitou','Vyššie odborné','Vysokoškolské I. (Bc.)','Vysokoškolské II. (Mgr., Ing.)','Vysokoškolské III. (PhD.)'];
+var BYV = ['Vo vlastnom','V nájme','U rodičov / rodiny','Služobný byt','Iné'];
+var PRIJ = ['Zamestnanec','Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme','Dôchodca','Rodičovský príspevok / materská','Bez príjmu','Iné'];
+var ZMLUVA = ['Doba neurčitá','Doba určitá','Dohoda','Služobný pomer (polícia, armáda…)','Agentúrne zamestnanie'];
+var PODN = ['SZČO – živnosť','s.r.o. – konateľ a spoločník','s.r.o. – len spoločník','s.r.o. – len konateľ','a.s.','Slobodné povolanie (lekár, advokát, umelec…)','Samostatne hospodáriaci roľník','Iné'];
+var UCT = ['Paušálne výdavky 60 %','Skutočné výdavky – jednoduché účtovníctvo','Podvojné účtovníctvo','Neviem'];
+var ZAVTYP = ['Hypotéka','Spotrebný úver','Kreditná karta','Povolené prečerpanie (kontokorent)','Lízing / autoúver','Splátkový predaj','Stavebné sporenie – úver','Pôžička od fyzickej osoby','Firemný úver (ručím osobne)','Iné'];
+var NEHTYP = ['Byt','Rodinný dom','Stavebný pozemok','Rozostavaná stavba','Rekreačná chata / chalupa','Apartmán','Nebytový priestor','Iné'];
+var NEHSTAV = ['Novostavba od developera','Novostavba – dokončená, nekolaudovaná','Po kompletnej rekonštrukcii','Čiastočne rekonštruovaná','Pôvodný stav','Vo výstavbe'];
+var KONSTR = ['Tehla','Panel','Drevostavba','Zmiešaná','Neviem'];
+var TARCHY = ['Bez tiarch','Záložné právo banky','Vecné bremeno (doživotné bývanie, prechod…)','Predkupné právo','Exekučné záložné právo','Nájomná zmluva zapísaná na LV','Neviem – treba overiť LV'];
+var DOKLADY = ['Občiansky preukaz (obe strany)','Potvrdenie o príjme od zamestnávateľa','Výpisy z osobného účtu za 3 – 6 mesiacov','Pracovná zmluva + dodatky','Daňové priznanie za posledné 2 roky + potvrdenie o podaní','Potvrdenie o zaplatení dane','Potvrdenie o nedoplatkoch – Sociálna poisťovňa','Potvrdenie o nedoplatkoch – zdravotná poisťovňa','Potvrdenie o nedoplatkoch – daňový úrad','Výpisy z podnikateľského účtu za 6 – 12 mesiacov','Účtovná závierka / výkazy','Rezervačná zmluva','Kúpna zmluva alebo návrh','List vlastníctva (LV)','Znalecký posudok','Stavebné povolenie / ohlásenie','Projektová dokumentácia','Rozpočet stavby / rekonštrukcie','Nájomná zmluva (príjem z prenájmu)','Zmluvy k existujúcim úverom','Rozhodnutie o výživnom / dôchodku','Sobášny list / rozsudok o rozvode / dohoda o BSM'];
+
+function T(id,label,o){o=o||{};o.id=id;o.label=label;o.type=o.type||'text';return o;}
+function N(id,label,o){o=o||{};o.type='number';o.unit=o.unit||EUR;return T(id,label,o);}
+function S(id,label,options,o){o=o||{};o.type='select';o.options=options;return T(id,label,o);}
+function C(id,label,options,o){o=o||{};o.type='chips';o.options=options;return T(id,label,o);}
+function M(id,label,options,o){o=o||{};o.type='multi';o.options=options;return T(id,label,o);}
+function D(id,label,o){o=o||{};o.type='date';return T(id,label,o);}
+function A(id,label,o){o=o||{};o.type='textarea';o.wide=true;return T(id,label,o);}
+function YN(id,label,o){return C(id,label,['Áno','Nie'],o);}
+function H(text){return {type:'h',label:text};}
+function NOTE(text){return {type:'note',label:text};}
+function UP(id,label,tag,o){o=o||{};o.type='upload';o.tag=tag;o.wide=true;return T(id,label,o);}
+
+function osobaFields(p,isCo){
+  var f=[
+    H('Identifikácia'),
+    T(p+'meno','Meno',{req:!isCo}),T(p+'priezvisko','Priezvisko',{req:!isCo}),
+    T(p+'rodne','Rodné priezvisko'),T(p+'titul','Titul'),
+    D(p+'narodenie','Dátum narodenia',{req:!isCo}),T(p+'rc','Rodné číslo',{hint:'Nepovinné. Vyplň až po dohode s konzultantom.'}),
+    T(p+'statna','Štátna príslušnosť',{val:'SR'}),T(p+'op','Číslo občianskeho preukazu',{hint:'Nepovinné.'}),
+    D(p+'opplat','Platnosť OP do'),T(p+'miesto','Miesto narodenia'),
+    H('Kontakt a bydlisko'),
+    T(p+'tel','Telefón',{type:'tel',req:!isCo}),T(p+'email','E-mail',{type:'email',req:!isCo}),
+    T(p+'adresa','Trvalé bydlisko (ulica, číslo, PSČ, mesto)',{wide:true}),
+    T(p+'koresp','Korešpondenčná adresa (ak je iná)',{wide:true}),
+    S(p+'byvanie','Súčasné bývanie',BYV),N(p+'najom','Mesačný nájom, ak bývaš v nájme'),
+    H('Rodina a domácnosť'),
+    S(p+'rodstav','Rodinný stav',ROD),
+    C(p+'bsm','Bezpodielové spoluvlastníctvo manželov (BSM)',['Platí štandardne','Zúžené notárskou zápisnicou','Zrušené','Netýka sa'],{hint:'Pri manželoch banka spravidla vyžaduje účasť oboch; výnimky závisia od banky.'}),
+    S(p+'vzdelanie','Najvyššie dosiahnuté vzdelanie',VZD),
+    N(p+'deti','Počet vyživovaných detí',{unit:'',hint:'Vrátane detí, na ktoré platíš výživné.'}),
+    T(p+'detivek','Vek detí (napr. 3, 7, 12)'),
+    N(p+'osoby','Počet osôb v domácnosti spolu',{unit:''}),
+  ];
+  return f;
+}
+function prijemFields(p,isCo){
+  return [
+    C(p+'ptyp','Hlavný zdroj príjmu',PRIJ,{req:!isCo}),
+    // zamestnanec
+    H('Zamestnanie'),
+    NOTE('Vyplň, ak si zamestnanec (aj vo vlastnej firme).'),
+    T(p+'zam','Zamestnávateľ – obchodné meno',{sh:[p+'ptyp',['Zamestnanec','Zamestnanec vo vlastnej firme']]}),
+    T(p+'zamico','IČO zamestnávateľa',{sh:[p+'ptyp',['Zamestnanec','Zamestnanec vo vlastnej firme']]}),
+    T(p+'pozicia','Pracovná pozícia',{sh:[p+'ptyp',['Zamestnanec','Zamestnanec vo vlastnej firme']]}),
+    T(p+'odvetvie','Odvetvie zamestnávateľa',{sh:[p+'ptyp',['Zamestnanec','Zamestnanec vo vlastnej firme']]}),
+    D(p+'zamod','Zamestnaný od',{sh:[p+'ptyp',['Zamestnanec','Zamestnanec vo vlastnej firme']]}),
+    S(p+'zmluva','Typ pracovnej zmluvy',ZMLUVA,{sh:[p+'ptyp',['Zamestnanec','Zamestnanec vo vlastnej firme']]}),
+    D(p+'urcitado','Zmluva na dobu určitú – platí do',{sh:[p+'zmluva',['Doba určitá','Agentúrne zamestnanie']]}),
+    YN(p+'skusobna','Si ešte v skúšobnej dobe?',{sh:[p+'ptyp',['Zamestnanec','Zamestnanec vo vlastnej firme']]}),
+    YN(p+'vypoved','Je podaná alebo plánovaná výpoveď?',{sh:[p+'ptyp',['Zamestnanec','Zamestnanec vo vlastnej firme']]}),
+    N(p+'cisty3','Čistý mesačný príjem – priemer za 3 mesiace',{sh:[p+'ptyp',['Zamestnanec','Zamestnanec vo vlastnej firme']]}),
+    N(p+'cisty12','Čistý mesačný príjem – priemer za 12 mesiacov',{sh:[p+'ptyp',['Zamestnanec','Zamestnanec vo vlastnej firme']]}),
+    N(p+'hruby','Hrubý mesačný príjem (podľa zmluvy)',{sh:[p+'ptyp',['Zamestnanec','Zamestnanec vo vlastnej firme']]}),
+    N(p+'bonusy','Nepravidelné zložky za rok (bonusy, odmeny, 13. plat, nadčasy)',{sh:[p+'ptyp',['Zamestnanec','Zamestnanec vo vlastnej firme']]}),
+    YN(p+'naucet','Chodí mzda na účet v banke?',{sh:[p+'ptyp',['Zamestnanec','Zamestnanec vo vlastnej firme']]}),
+    T(p+'mzdabanka','Do ktorej banky chodí mzda',{sh:[p+'naucet',['Áno']]}),
+    YN(p+'zrazky','Máš zrážky zo mzdy (exekúcia, výživné, pôžička)?',{sh:[p+'ptyp',['Zamestnanec','Zamestnanec vo vlastnej firme']]}),
+    N(p+'zrazkysuma','Výška zrážok mesačne',{sh:[p+'zrazky',['Áno']]}),
+    YN(p+'zahr','Pracuješ v zahraničí?',{sh:[p+'ptyp',['Zamestnanec']]}),
+    T(p+'zahrkraj','Krajina a mena príjmu',{sh:[p+'zahr',['Áno']]}),
+    N(p+'diety','Diéty / cestovné náhrady mesačne',{sh:[p+'zahr',['Áno']]}),
+    UP(p+'up_vyplata','Nahrať výplatné pásky za posledné 3 mesiace alebo potvrdenie o príjme',(isCo?'Spolužiadateľ – ':'')+'Výplatná páska / potvrdenie o príjme',{sh:[p+'ptyp',['Zamestnanec','Zamestnanec vo vlastnej firme']]}),
+    // podnikatel
+    H('Podnikanie / firma'),
+    NOTE('Vyplň, ak si majiteľ firmy, konateľ, spoločník alebo SZČO. Banky hodnotia podnikateľov podľa daňového priznania, obratu na účte alebo podielu na zisku; preto sú tieto otázky podrobnejšie.'),
+    S(p+'ftyp','Forma podnikania',PODN,{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    T(p+'fmeno','Obchodné meno',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    T(p+'fico','IČO',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    T(p+'fdic','DIČ',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    YN(p+'fdph','Platca DPH?',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    D(p+'fvznik','Podnikáš / firma existuje od',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    T(p+'fcinnost','Predmet činnosti (čo firma reálne robí)',{wide:true,sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fpodiel','Tvoj podiel v spoločnosti',{unit:'%',sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fzam','Počet zamestnancov',{unit:'',sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    T(p+'finefirmy','Ďalšie firmy, v ktorých máš podiel alebo si konateľ (názov, IČO, podiel)',{wide:true,sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    M(p+'fprijemforma','Ako si vyplácaš príjem z firmy',['Odmena konateľa','Mzda zamestnanca vlastnej firmy','Podiel na zisku (dividendy)','Faktúrujem firme cez živnosť','Prenajímam firme majetok','Zatiaľ si nevyplácam nič'],{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fodmena','Odmena konateľa / mzda z vlastnej firmy – čistá mesačne',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fdiv1','Vyplatený podiel na zisku za posledný rok',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fdiv2','Vyplatený podiel na zisku za predposledný rok',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    S(p+'fuct','Spôsob uplatnenia výdavkov / účtovníctvo',UCT,{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fobrat1','Tržby / obrat za posledný uzavretý rok',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fobrat2','Tržby / obrat za predposledný rok',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fzaklad1','Základ dane / výsledok hospodárenia – posledný rok',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fzaklad2','Základ dane / výsledok hospodárenia – predposledný rok',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fdan1','Zaplatená daň z príjmu – posledný rok',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fodpisy','Odpisy za posledný rok',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    T(p+'fdproky','Za ktoré roky máš podané daňové priznanie',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    YN(p+'fdpodlozene','Je posledné daňové priznanie podané a daň zaplatená?',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    YN(p+'fodklad','Mal si odklad daňového priznania?',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    YN(p+'fnedoplatky','Máš nedoplatky voči Sociálnej poisťovni, zdravotnej poisťovni alebo daňovému úradu?',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    T(p+'fnedoplatkyinfo','Aké nedoplatky, v akej výške, je dohodnutý splátkový kalendár?',{wide:true,sh:[p+'fnedoplatky',['Áno']]}),
+    T(p+'fucetbanka','Banka, v ktorej vedieš podnikateľský účet',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fobratucet','Priemerný mesačný kreditný obrat na podnikateľskom účte',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fhotovost','Podiel príjmov v hotovosti',{unit:'%',sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    C(p+'fsezona','Sezónnosť podnikania',['Stabilné celý rok','Silná sezóna (leto / zima)','Nárazové zákazky'],{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    T(p+'fodberatelia','Hlavní odberatelia a ich podiel na tržbách (napr. 1 klient = 70 %)',{wide:true,sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    C(p+'ftrend','Vývoj tržieb v aktuálnom roku oproti minulému',['Rastú','Približne rovnaké','Klesajú'],{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    YN(p+'fuvery','Má firma úvery, lízingy alebo kontokorent?',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    T(p+'fuveryinfo','Firemné záväzky: veriteľ, zostatok, splátka, ručíš osobne?',{wide:true,sh:[p+'fuvery',['Áno']]}),
+    YN(p+'frucenie','Ručíš osobne za úvery inej firmy alebo osoby?',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    YN(p+'fspory','Prebieha súdny spor, exekúcia, reštrukturalizácia alebo konkurz týkajúci sa firmy?',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    T(p+'fsporyinfo','Popis',{wide:true,sh:[p+'fspory',['Áno']]}),
+    YN(p+'fdotacie','Čerpá firma dotácie alebo štátnu pomoc?',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    UP(p+'up_dp','Nahrať daňové priznanie za posledné 2 roky (celé, aj s potvrdením o podaní)',(isCo?'Spolužiadateľ – ':'')+'Daňové priznanie',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    UP(p+'up_vypisy','Nahrať výpisy z podnikateľského účtu za posledných 6 mesiacov',(isCo?'Spolužiadateľ – ':'')+'Výpisy z podnikateľského účtu',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    // dochodca
+    H('Dôchodok'),
+    C(p+'dtyp','Typ dôchodku',['Starobný','Predčasný starobný','Invalidný','Výsluhový','Vdovský / sirotský'],{sh:[p+'ptyp',['Dôchodca']]}),
+    N(p+'dsuma','Výška dôchodku mesačne',{sh:[p+'ptyp',['Dôchodca']]}),
+    UP(p+'up_doch','Nahrať rozhodnutie o dôchodku',(isCo?'Spolužiadateľ – ':'')+'Rozhodnutie o dôchodku',{sh:[p+'ptyp',['Dôchodca']]}),
+    // rodicovsky
+    N(p+'rsuma','Výška rodičovského príspevku / materskej',{sh:[p+'ptyp',['Rodičovský príspevok / materská']]}),
+    D(p+'rdo','Poberaný do',{sh:[p+'ptyp',['Rodičovský príspevok / materská']]}),
+    YN(p+'rnavrat','Máš miesto, kam sa vrátiš po rodičovskej?',{sh:[p+'ptyp',['Rodičovský príspevok / materská']]}),
+    T(p+'rzam','Zamestnávateľ a čistý príjem pred rodičovskou',{wide:true,sh:[p+'ptyp',['Rodičovský príspevok / materská']]}),
+    // ine
+    H('Ďalšie príjmy (okrem hlavného)'),
+    YN(p+'iprenajom','Máš príjem z prenájmu?'),
+    T(p+'iprenajominfo','Prenajímaná nehnuteľnosť, nájomné mesačne, od kedy, priznané v daňovom priznaní?',{wide:true,sh:[p+'iprenajom',['Áno']]}),
+    YN(p+'ivyzivne','Prijímaš výživné?'),
+    N(p+'ivyzivnesuma','Výška výživného mesačne',{sh:[p+'ivyzivne',['Áno']]}),
+    T(p+'iine','Iné pravidelné príjmy (dohody, dividendy, príjem zo zahraničia, príspevky) – druh a suma',{wide:true}),
+    T(p+'ipoznamka','Poznámka k príjmu (čokoľvek, čo by banka mala vedieť)',{wide:true}),
+  ];
+}
+
+var SECTIONS=[
+ {id:'uver',title:'Požadovaný úver',lead:'Čo chceš financovať a za akých podmienok. Bez presných čísel stačí odhad; konzultant ich s tebou doladí.',fields:[
+   C('ucel','Účel úveru',UCELY,{req:true,wide:true}),
+   T('ucelpopis','Upresnenie účelu (pri kombinácii alebo rekonštrukcii napíš, čo všetko)',{wide:true}),
+   S('stavkupy','V akej fáze je kúpa',STAV),
+   D('termin','Dokedy potrebuješ mať úver schválený'),
+   N('kupnacena','Kúpna cena / rozpočet'),N('vyska','Požadovaná výška úveru',{req:true}),
+   N('vlastne','Výška vlastných zdrojov'),M('zdroj','Pôvod vlastných zdrojov',ZDROJ),
+   N('splatnost','Požadovaná doba splácania',{unit:'rokov',val:30}),
+   C('fixacia','Preferovaná fixácia úrokovej sadzby',['1 rok','3 roky','5 rokov','7 rokov','10 rokov','Nechám na odporúčanie']),
+   N('splatkamax','Maximálna splátka, ktorú chceš platiť'),
+   N('densplatky','Preferovaný deň splátky v mesiaci',{unit:'deň',val:15}),
+   M('banky','Banky, kde už máš účet alebo úver',['Slovenská sporiteľňa','VÚB','Tatra banka','ČSOB','UniCredit','mBank','365.bank','Prima banka','Fio','Iná']),
+   YN('inaponuka','Máš už ponuku z inej banky alebo od iného sprostredkovateľa?'),
+   T('inaponukainfo','Banka, sadzba, výška, podmienky',{wide:true,sh:['inaponuka',['Áno']]}),
+   YN('zamietnute','Bola ti v posledných 12 mesiacoch zamietnutá žiadosť o úver?'),
+   T('zamietnuteinfo','Kde a z akého dôvodu',{wide:true,sh:['zamietnute',['Áno']]}),
+   YN('poistenie','Chceš riešiť k úveru aj poistenie schopnosti splácať alebo poistenie nehnuteľnosti?'),
+   H('Výstavba a rekonštrukcia'),
+   NOTE('Vyplň pri výstavbe, dostavbe alebo rekonštrukcii.'),
+   N('n_rozpocet','Celkový rozpočet prác',{sh:['ucel',['Výstavba domu','Rekonštrukcia / dostavba','Kombinácia účelov']]}),
+   C('n_povolenie','Stavebné povolenie / ohlásenie',['Vydané, právoplatné','Podané','Ešte nie','Netreba'],{sh:['ucel',['Výstavba domu','Rekonštrukcia / dostavba','Kombinácia účelov']]}),
+   C('n_kto','Kto stavia',['Stavebná firma na kľúč','Svojpomocne','Kombinácia'],{sh:['ucel',['Výstavba domu','Rekonštrukcia / dostavba','Kombinácia účelov']]}),
+   T('n_rozsah','Rozsah prác (čo sa bude robiť) a plánovaný harmonogram',{wide:true,sh:['ucel',['Výstavba domu','Rekonštrukcia / dostavba','Kombinácia účelov']]}),
+   YN('n_projekt','Máš projektovú dokumentáciu a položkový rozpočet?',{sh:['ucel',['Výstavba domu','Rekonštrukcia / dostavba','Kombinácia účelov']]}),
+   N('n_prestavane','Koľko je už preinvestované z vlastných zdrojov',{sh:['ucel',['Výstavba domu','Rekonštrukcia / dostavba','Kombinácia účelov']]}),
+   H('Refinancovanie'),
+   NOTE('Vyplň, ak chceš preniesť alebo navýšiť existujúci úver.'),
+   T('r_banka','Súčasná banka',{sh:['ucel',['Refinancovanie existujúceho úveru','Kombinácia účelov']]}),
+   N('r_zostatok','Aktuálny zostatok úveru',{sh:['ucel',['Refinancovanie existujúceho úveru','Kombinácia účelov']]}),
+   N('r_sadzba','Súčasná úroková sadzba',{unit:'% p. a.',sh:['ucel',['Refinancovanie existujúceho úveru','Kombinácia účelov']]}),
+   D('r_fixkoniec','Koniec fixácie',{sh:['ucel',['Refinancovanie existujúceho úveru','Kombinácia účelov']]}),
+   N('r_splatka','Súčasná splátka',{sh:['ucel',['Refinancovanie existujúceho úveru','Kombinácia účelov']]}),
+   D('r_poskytnuty','Úver poskytnutý dňa',{sh:['ucel',['Refinancovanie existujúceho úveru','Kombinácia účelov']]}),
+   N('r_povodne','Pôvodná výška úveru',{sh:['ucel',['Refinancovanie existujúceho úveru','Kombinácia účelov']]}),
+   N('r_navysenie','Požadované navýšenie',{sh:['ucel',['Refinancovanie existujúceho úveru','Kombinácia účelov']]}),
+   T('r_navysenieucel','Na čo bude navýšenie použité',{wide:true,sh:['ucel',['Refinancovanie existujúceho úveru','Kombinácia účelov']]}),
+ ]},
+ {id:'ziadatel',title:'Žiadateľ',lead:'Hlavný žiadateľ o úver.',fields:osobaFields('z_',false)},
+ {id:'spoluziadatel',title:'Spolužiadateľ',lead:'Manžel / manželka, partner alebo iná osoba, ktorá bude v úvere. Zapni, ak bude v žiadosti ďalšia osoba.',toggle:'sz_on',toggleLabel:'V úvere bude spolužiadateľ',fields:[
+   C('sz_vztah','Vzťah k žiadateľovi',['Manžel / manželka','Partner / partnerka','Rodič','Dieťa','Súrodenec','Iné'])
+ ].concat(osobaFields('sz_',true))},
+ {id:'prijem',title:'Príjem žiadateľa',lead:'Banka posudzuje príjem podľa toho, odkiaľ pochádza. Vyplň všetko, čo sa ťa týka; časti, ktoré sa ťa netýkajú, sa skryjú.',fields:prijemFields('z_',false)},
+ {id:'prijemsz',title:'Príjem spolužiadateľa',lead:'Rovnaké otázky pre spolužiadateľa.',dependsOn:'sz_on',fields:prijemFields('sz_',true)},
+ {id:'zavazky',title:'Existujúce záväzky',lead:'Všetky úvery, karty a prečerpania oboch žiadateľov, aj tie, ktoré sa z nového úveru vyplatia. Banka ich vidí v úverových registroch; zamlčanie škodí viac než vysoká splátka.',fields:[
+   YN('zav_ma','Máte vy alebo spolužiadateľ nejaké úvery, kreditné karty, kontokorent alebo lízing?',{req:true}),
+   NOTE('Každý úver, kreditnú kartu, povolené prečerpanie aj lízing uveďte ako samostatný záväzok. Pri kartách a prečerpaní je rozhodujúci limit, nie vyčerpaná suma.'),
+   {type:'repeat',id:'zav',label:'Záväzok',add:'Pridať ďalší záväzok',sh:['zav_ma',['Áno']],fields:[
+     S('typ','Typ',ZAVTYP),T('kto','Koho je (žiadateľ / spolužiadateľ / spoločný)'),T('veritel','Veriteľ (banka, spoločnosť, osoba)'),
+     N('zostatok','Aktuálny zostatok (úver, lízing)'),N('limit','Limit (kreditná karta, prečerpanie)'),N('cerpane','Vyčerpané z limitu'),N('splatka','Mesačná splátka'),
+     D('koniec','Splatný do'),YN('vyplatit','Vyplatí sa z nového úveru?'),YN('zrusit','Zruší sa pred podaním žiadosti?'),YN('omeskanie','Bolo omeškanie so splátkou?')
+   ]},
+   YN('zav_rucitel','Si ručiteľ alebo spoludlžník v cudzom úvere?'),
+   T('zav_rucitelinfo','Komu, kde, aký zostatok a splátka',{wide:true,sh:['zav_rucitel',['Áno']]}),
+   YN('zav_omeskanie','Mal si za posledných 5 rokov omeškanie so splátkou dlhšie ako 30 dní?'),
+   T('zav_omeskanieinfo','Kedy, kde, ako dlho, dôvod',{wide:true,sh:['zav_omeskanie',['Áno']]}),
+   YN('zav_exekucia','Prebieha alebo prebiehala voči tebe exekúcia, osobný bankrot alebo súdny spor o peniaze?'),
+   T('zav_exekuciainfo','Popis a stav',{wide:true,sh:['zav_exekucia',['Áno']]}),
+   YN('zav_ukoncene','Boli v posledných 2 rokoch predčasne splatené alebo zrušené úvery / karty?'),
+   T('zav_ukonceneinfo','Ktoré a kedy',{wide:true,sh:['zav_ukoncene',['Áno']]}),
+ ]},
+ {id:'majetok',title:'Iná nehnuteľnosť',lead:'Nehnuteľnosti, ktoré už vlastníte vy alebo spolužiadateľ. Dôležité pre dozabezpečenie úveru a pre prípad, že kupujete ďalšie bývanie.',fields:[
+   YN('m_neh','Vlastníte vy alebo spolužiadateľ nejakú nehnuteľnosť?',{req:true}),
+   {type:'repeat',id:'mneh',label:'Nehnuteľnosť',add:'Pridať ďalšiu nehnuteľnosť',sh:['m_neh',['Áno']],fields:[
+     S('typ','Typ',NEHTYP),T('adresa','Adresa / obec'),T('vlastnik','Vlastník a podiel'),N('hodnota','Odhadovaná hodnota'),
+     YN('zalozena','Je založená v prospech banky?'),YN('prenajom','Prenajíma sa?'),YN('dozabezpecenie','Dá sa použiť ako ďalšie zabezpečenie?'),YN('predaj','Plánujete ju predať?')
+   ]},
+ ]},
+ {id:'doklady',title:'Doklady',lead:'Označ, čo už máš pripravené. Zoznam je široký; konzultant ti povie, čo z neho banka reálne vyžaduje v tvojom prípade.',fields:[
+   {type:'docs',id:'doklady',options:DOKLADY}
+ ]},
+ {id:'zaver',title:'Záver',lead:'Čokoľvek, čo sa do kolóniek nezmestilo.',fields:[
+   A('poznamka','Poznámky, otázky, špecifiká prípadu'),
+   C('kontakt','Ako ťa má konzultant kontaktovať',['Telefón','E-mail','WhatsApp','Osobne']),
+   T('kontaktcas','Kedy ti to vyhovuje'),
+   T('konzultant','Konzultant',{val:CONSULTANT_NAME}),
+   D('datum','Dátum vyplnenia'),
+ ]},
+];
+
+
+SECTIONS[SECTIONS.length-1].title='Poznámky a kontakt';
+SECTIONS[SECTIONS.length-1].lead='Čokoľvek, čo sa do kolóniek nezmestilo, a ako Vás mám kontaktovať.';
+
+/* ====== Stav ====== */
+var state={}, reps={zav:[],mneh:[]};
+var formEl=document.getElementById('form');
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+function fieldHTML(f,prefix){
+  var id=prefix?prefix+'.'+f.id:f.id;
+  if(f.type==='h')return '<h3 class="sub">'+esc(f.label)+'</h3>';
+  if(f.type==='note')return '<div class="note" data-f="note">'+esc(f.label)+'</div>';
+  var h='<div class="q'+(f.wide||f.type==='docs'?' wide':'')+'" data-id="'+esc(id)+'">';
+  if(f.type==='upload'){h+='<span class="lbl">'+esc(f.label)+'</span>';}
+  else if(f.type!=='docs'){h+='<label class="lbl" for="i_'+esc(id)+'">'+esc(f.label)+(f.req?' <span class="req">*</span>':'')+'</label>';}
+  var v=state[id]!=null?state[id]:(f.val!=null?f.val:'');
+  if(f.type==='text'||f.type==='email'||f.type==='tel'){h+='<input type="'+f.type+'" id="i_'+esc(id)+'" value="'+esc(v)+'" autocomplete="off">';}
+  else if(f.type==='date'){h+='<input type="date" id="i_'+esc(id)+'" value="'+esc(v)+'">';}
+  else if(f.type==='number'){h+='<div class="unit"><input type="number" inputmode="decimal" step="any" id="i_'+esc(id)+'" value="'+esc(v)+'">'+(f.unit?'<span>'+esc(f.unit)+'</span>':'')+'</div>';}
+  else if(f.type==='textarea'){h+='<textarea id="i_'+esc(id)+'">'+esc(v)+'</textarea>';}
+  else if(f.type==='select'){h+='<select id="i_'+esc(id)+'"><option value="">— vyberte —</option>';f.options.forEach(function(o){h+='<option'+(v===o?' selected':'')+'>'+esc(o)+'</option>';});h+='</select>';}
+  else if(f.type==='chips'){h+='<div class="opts" id="i_'+esc(id)+'">';f.options.forEach(function(o){h+='<label><input type="radio" name="'+esc(id)+'" value="'+esc(o)+'"'+(v===o?' checked':'')+'>'+esc(o)+'</label>';});h+='</div>';}
+  else if(f.type==='multi'){var arr=Array.isArray(v)?v:[];h+='<div class="opts" id="i_'+esc(id)+'">';f.options.forEach(function(o){h+='<label><input type="checkbox" value="'+esc(o)+'"'+(arr.indexOf(o)>=0?' checked':'')+'>'+esc(o)+'</label>';});h+='</div>';}
+  else if(f.type==='upload'){var cnt=PRILOHY.filter(function(p){return p.k===f.tag;}).length;h+='<div class="tools noprint" style="margin-top:.2rem"><button type="button" data-ufoto="'+esc(f.tag)+'">Odfotiť</button><button type="button" class="sec" data-ufile="'+esc(f.tag)+'">Nahrať súbor</button><span class="small" style="align-self:center">'+(cnt?'Priložené: '+cnt:'Zatiaľ nič')+'</span></div>';}
+  else if(f.type==='docs'){var a2=Array.isArray(v)?v:[];h+='<div class="docs" id="i_'+esc(id)+'">';f.options.forEach(function(o){h+='<label><input type="checkbox" value="'+esc(o)+'"'+(a2.indexOf(o)>=0?' checked':'')+'><span>'+esc(o)+'</span></label>';});h+='</div>';}
+  if(f.hint)h+='<span class="hint">'+esc(f.hint)+'</span>';
+  return h+'</div>';
+}
+function repeatHTML(f){
+  var rows=reps[f.id]||[];
+  var h='<div class="rep" data-rep="'+f.id+'">';
+  rows.forEach(function(rid,i){
+    h+='<div class="row" data-row="'+rid+'"><div class="rowhead"><span>'+esc(f.label)+' '+(i+1)+'</span><button type="button" class="rm noprint" data-rm="'+f.id+':'+rid+'">Odstrániť</button></div><div class="grid">';
+    f.fields.forEach(function(sf){h+=fieldHTML(sf,f.id+'.'+rid);});
+    h+='</div></div>';
+  });
+  return h+'<button type="button" class="add noprint" data-add="'+f.id+'">+ '+esc(f.add)+'</button></div>';
+}
+function render(){
+  var h='';
+  SECTIONS.forEach(function(s,i){
+    h+='<section class="sekcia" id="s_'+s.id+'" data-sec="'+s.id+'"><div class="shead"><span class="num">'+(i+1)+'</span><div><h2>'+esc(s.title)+'</h2><div class="sub">'+esc(s.lead)+'</div></div></div>';
+    if(s.toggle){h+='<label class="toggle noprint"><input type="checkbox" id="i_'+s.toggle+'"'+(state[s.toggle]?' checked':'')+'> '+esc(s.toggleLabel)+'</label>';}
+    h+='<div class="grid" data-body="'+s.id+'">';
+    s.fields.forEach(function(f){h+=f.type==='repeat'?repeatHTML(f):fieldHTML(f,'');});
+    h+='</div></section>';
+  });
+  formEl.innerHTML=h;
+  applyVisibility();
+}
+function collectAllFields(){
+  var out=[];
+  SECTIONS.forEach(function(s){s.fields.forEach(function(f){
+    if(f.type==='h'||f.type==='note')return;
+    if(f.type==='repeat'){(reps[f.id]||[]).forEach(function(rid){f.fields.forEach(function(sf){out.push({f:sf,id:f.id+'.'+rid+'.'+sf.id,sec:s});});});return;}
+    out.push({f:f,id:f.id,sec:s});
+  });});
+  return out;
+}
+function visibleSec(s){return s.dependsOn?!!state[s.dependsOn]:true;}
+function showIf(sh,prefix){
+  if(!sh)return true;var key=sh[0];
+  if(prefix&&state[prefix+'.'+key]!==undefined)key=prefix+'.'+key;
+  return sh[1].indexOf(state[key])>=0;
+}
+function findField(id){
+  var parts=id.split('.');
+  if(parts.length===3){var rep=null;SECTIONS.forEach(function(s){s.fields.forEach(function(f){if(f.type==='repeat'&&f.id===parts[0])rep=f;});});if(!rep)return null;var sf=rep.fields.filter(function(x){return x.id===parts[2];})[0];return sf?{f:sf}:null;}
+  var found=null;SECTIONS.forEach(function(s){s.fields.forEach(function(f){if(f.id===id)found={f:f,sec:s};});});return found;
+}
+function applyVisibility(){
+  SECTIONS.forEach(function(s){
+    var secEl=document.getElementById('s_'+s.id);if(!secEl)return;
+    secEl.classList.toggle('hidden',!visibleSec(s));
+    var body=secEl.querySelector('[data-body]');
+    if(s.toggle)body.classList.toggle('hidden',!state[s.toggle]);
+    secEl.querySelectorAll('.q[data-id]').forEach(function(el){
+      var id=el.dataset.id;var meta=findField(id);if(!meta)return;
+      var prefix=id.indexOf('.')>0?id.substring(0,id.lastIndexOf('.')):'';
+      el.classList.toggle('hidden',!showIf(meta.f.sh,prefix));
+    });
+    var kids=Array.prototype.slice.call(body.children);
+    for(var i=0;i<kids.length;i++){
+      if(kids[i].tagName==='H3'){
+        var any=false;
+        for(var j=i+1;j<kids.length&&kids[j].tagName!=='H3';j++){if(kids[j].dataset.f!=='note'&&!kids[j].classList.contains('hidden')){any=true;break;}}
+        kids[i].classList.toggle('hidden',!any);
+        for(var k=i+1;k<kids.length&&kids[k].tagName!=='H3';k++){if(kids[k].dataset.f==='note')kids[k].classList.toggle('hidden',!any);}
+      }
+    }
+  });
+  progress();renderPoz();
+}
+function filled(v){return v!==undefined&&v!==''&&v!==null&&!(Array.isArray(v)&&!v.length);}
+function progress(){
+  var tot=0,done=0;
+  collectAllFields().forEach(function(x){
+    var el=document.querySelector('.q[data-id="'+x.id+'"]');if(!el||el.classList.contains('hidden'))return;
+    var sec=document.getElementById('s_'+x.sec.id);if(sec&&sec.classList.contains('hidden'))return;
+    if(x.f.type==='docs'||x.f.type==='upload')return;tot++;if(filled(state[x.id]))done++;
+  });
+  var pct=tot?Math.round(done/tot*100):0;
+  document.getElementById('pgtxt').textContent='Vyplnené '+pct+' %';document.getElementById('pgbar').style.width=pct+'%';
+}
+
+/* ====== Udalosti ====== */
+formEl.addEventListener('input',onChange);formEl.addEventListener('change',onChange);
+function onChange(e){
+  var t=e.target;if(!t)return;
+  if(t.id&&t.id.indexOf('i_')===0&&t.type==='checkbox'&&t.closest('.toggle')){state[t.id.substring(2)]=t.checked;applyVisibility();save();return;}
+  var f=t.closest('.q[data-id]');if(!f)return;var id=f.dataset.id;
+  if(t.type==='radio'){state[id]=t.value;if(id==='zav_ma'&&t.value==='Áno'&&!reps.zav.length){reps.zav.push('r'+Date.now());rerenderRep('zav');}if(id==='m_neh'&&t.value==='Áno'&&!reps.mneh.length){reps.mneh.push('r'+Date.now());rerenderRep('mneh');}}
+  else if(t.type==='checkbox'){var arr=[];f.querySelectorAll('input:checked').forEach(function(c){arr.push(c.value);});state[id]=arr;}
+  else state[id]=t.value;
+  f.classList.remove('invalid');
+  if(e.type==='change'||t.type==='radio'||t.type==='checkbox'||t.tagName==='SELECT')applyVisibility();else progress();
+  save();
+}
+formEl.addEventListener('click',function(e){
+  var uf=e.target.closest('[data-ufoto]');if(uf){UPLOAD_TAG=uf.dataset.ufoto;document.getElementById('fFoto').click();return;}
+  var ul=e.target.closest('[data-ufile]');if(ul){UPLOAD_TAG=ul.dataset.ufile;document.getElementById('fFile').click();return;}
+  var add=e.target.closest('[data-add]');if(add){var k=add.dataset.add;reps[k].push(String(Date.now()).slice(-6)+Math.floor(Math.random()*100));rerenderRep(k);save();return;}
+  var rm=e.target.closest('[data-rm]');if(rm){var p=rm.dataset.rm.split(':');reps[p[0]]=reps[p[0]].filter(function(x){return x!==p[1];});Object.keys(state).forEach(function(key){if(key.indexOf(p[0]+'.'+p[1]+'.')===0)delete state[key];});rerenderRep(p[0]);save();}
+});
+function rerenderRep(k){
+  var el=document.querySelector('[data-rep="'+k+'"]');if(!el)return;
+  var f=null;SECTIONS.forEach(function(s){s.fields.forEach(function(x){if(x.type==='repeat'&&x.id===k)f=x;});});
+  var tmp=document.createElement('div');tmp.innerHTML=repeatHTML(f);el.replaceWith(tmp.firstChild);applyVisibility();
+}
+
+/* ====== Koncept v prehliadači ====== */
+var LSKEY='uverovy_dotaznik_koncept';
+function save(){try{localStorage.setItem(LSKEY,JSON.stringify({state:state,reps:reps}));}catch(e){}}
+function load(){try{var d=JSON.parse(localStorage.getItem(LSKEY)||'null');if(d&&d.state){state=d.state;reps=d.reps||reps;}}catch(e){}if(!reps.zav)reps.zav=[];if(!reps.mneh)reps.mneh=[];}
+function apply(j){state=j.data||{};reps=j.reps||{zav:[],mneh:[]};if(!reps.zav)reps.zav=[];if(!reps.mneh)reps.mneh=[];render();}
+
+/* ====== Súhrn ====== */
+function fmt(v,f){
+  if(!filled(v))return '';
+  if(Array.isArray(v))return v.join(', ');
+  if(f&&f.type==='number'){var n=Number(v);if(!isNaN(n))return n.toLocaleString('sk-SK')+(f.unit?' '+f.unit:'');}
+  if(f&&f.type==='date'&&/^\d{4}-\d{2}-\d{2}$/.test(v)){var p=v.split('-');return p[2]+'.'+p[1]+'.'+p[0];}
+  if(v===true)return 'Áno';if(v===false)return 'Nie';
+  return String(v);
+}
+function summary(){
+  var lines=[];
+  lines.push('ÚVEROVÝ DOTAZNÍK · '+KONZULTANT.meno+' · verzia '+VERZIA);
+  lines.push('Klient: '+((state.z_meno||'')+' '+(state.z_priezvisko||'')).trim()+' | Tel.: '+(state.z_tel||'')+' | E-mail: '+(state.z_email||''));
+  lines.push('Vyplnené: '+new Date().toLocaleString('sk-SK'));
+  SECTIONS.forEach(function(s,i){
+    if(!visibleSec(s))return;
+    if(s.toggle&&!state[s.toggle]){lines.push('');lines.push((i+1)+'. '+s.title.toUpperCase()+': nie');return;}
+    var block=[];
+    s.fields.forEach(function(f){
+      if(f.type==='h'){block.push({h:f.label});return;}
+      if(f.type==='note'||f.type==='upload')return;
+      if(f.type==='repeat'){(reps[f.id]||[]).forEach(function(rid,ri){var rl=[];f.fields.forEach(function(sf){var v=fmt(state[f.id+'.'+rid+'.'+sf.id],sf);if(v)rl.push(sf.label+': '+v);});if(rl.length)block.push({l:f.label+' '+(ri+1),v:rl.join(' | ')});});return;}
+      if(f.type==='docs'){var a=state[f.id];if(Array.isArray(a)&&a.length)block.push({l:'Pripravené doklady',v:a.join('; ')});return;}
+      var el=document.querySelector('.q[data-id="'+f.id+'"]');if(el&&el.classList.contains('hidden'))return;
+      var v=fmt(state[f.id],f);if(v)block.push({l:f.label,v:v});
+    });
+    if(!block.some(function(b){return !b.h;}))return;
+    lines.push('');lines.push((i+1)+'. '+s.title.toUpperCase());
+    var lastH=null;block.forEach(function(b){if(b.h){lastH=b.h;return;}if(lastH){lines.push('-- '+lastH);lastH=null;}lines.push('  '+b.l+': '+b.v);});
+  });
+  if(PRILOHY.length){lines.push('');lines.push('PRÍLOHY: '+PRILOHY.map(function(p){return p.name;}).join(', '));}
+  lines.push('');lines.push('Vyhlásenie o pravdivosti: '+(document.getElementById('v_pravda').checked?'áno':'nie'));
+  lines.push('Súhlas so spracovaním údajov: '+(document.getElementById('v_gdpr').checked?'áno':'nie'));
+  return lines.join('\n');
+}
+function missing(){
+  var out=[];document.querySelectorAll('.q.invalid').forEach(function(e){e.classList.remove('invalid');});
+  collectAllFields().forEach(function(x){
+    if(!x.f.req)return;var el=document.querySelector('.q[data-id="'+x.id+'"]');if(!el||el.classList.contains('hidden'))return;
+    var sec=document.getElementById('s_'+x.sec.id);if(sec&&sec.classList.contains('hidden'))return;
+    if(!filled(state[x.id])){el.classList.add('invalid');out.push({el:el,l:x.f.label});}
+  });
+  return out;
+}
+
+/* ====== Prílohy (fotky a PDF) ====== */
+var PRILOHY=[];var MAX_TOTAL=24*1024*1024;var UPLOAD_TAG='';
+function b64size(b){return Math.floor(b.length*3/4);}
+function renderPrilohy(){
+  var box=document.getElementById('prilohy');
+  box.innerHTML=PRILOHY.map(function(p,i){return '<div class="pr">'+(p.type==='application/pdf'?'<div class="pdf">PDF</div>':'<img src="data:'+p.type+';base64,'+p.b64+'" alt="">')+'<div class="pn" title="'+esc(p.name)+'">'+esc(p.name)+'</div><button type="button" class="ghost noprint" data-rmp="'+i+'">Odstrániť</button></div>';}).join('')+(PRILOHY.length?'':'<p class="small">Zatiaľ žiadne prílohy.</p>');
+  box.querySelectorAll('[data-rmp]').forEach(function(b){b.onclick=function(){PRILOHY.splice(+b.dataset.rmp,1);renderPrilohy();renderPoz();refreshUploadCounts();};});
+}
+function refreshUploadCounts(){document.querySelectorAll('[data-ufoto]').forEach(function(b){var tag=b.dataset.ufoto;var cnt=PRILOHY.filter(function(p){return p.k===tag;}).length;var sp=b.parentNode.querySelector('span');if(sp)sp.textContent=cnt?'Priložené: '+cnt:'Zatiaľ nič';});}
+function pozadovane(){
+  var out=[];var yes=function(k){return state[k]==='Áno';};var is=function(k,arr){return arr.indexOf(state[k])>=0;};
+  out.push({k:'Občiansky preukaz',t:'Obe strany, čitateľne'});
+  var zam=['Zamestnanec','Zamestnanec vo vlastnej firme'],pod=['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme'];
+  if(is('z_ptyp',zam)){out.push({k:'Výplatná páska / potvrdenie o príjme',t:'Výplatné pásky za 3 mesiace alebo potvrdenie od zamestnávateľa (tlačivo pošlem)'});out.push({k:'Výpisy z účtu',t:'Osobný účet, posledné 3 – 6 mesiacov s pripísanou mzdou'});out.push({k:'Pracovná zmluva',t:'Vrátane dodatkov'});}
+  if(is('z_ptyp',pod)){out.push({k:'Daňové priznanie',t:'Za posledné 2 roky + potvrdenie o podaní a zaplatení dane'});out.push({k:'Výpisy z podnikateľského účtu',t:'Posledných 6 – 12 mesiacov'});out.push({k:'Potvrdenia o nedoplatkoch',t:'Sociálna poisťovňa, zdravotná poisťovňa, daňový úrad'});if(state.z_fuct==='Podvojné účtovníctvo')out.push({k:'Účtovná závierka',t:'Súvaha a výkaz ziskov a strát za 2 roky'});}
+  if(state.z_ptyp==='Dôchodca')out.push({k:'Rozhodnutie o dôchodku',t:'Posledné rozhodnutie alebo potvrdenie Sociálnej poisťovne'});
+  if(state.z_ptyp==='Rodičovský príspevok / materská')out.push({k:'Rozhodnutie o príspevku',t:'Úrad práce / Sociálna poisťovňa'});
+  if(yes('z_iprenajom'))out.push({k:'Nájomná zmluva',t:'K prenajímanej nehnuteľnosti + daňové priznanie s priznaným príjmom'});
+  if(state.sz_on){ if(is('sz_ptyp',zam))out.push({k:'Spolužiadateľ – príjem',t:'Potvrdenie o príjme a výpisy z účtu'}); if(is('sz_ptyp',pod))out.push({k:'Spolužiadateľ – daňové priznanie',t:'Za 2 roky + potvrdenia o nedoplatkoch'}); out.push({k:'Spolužiadateľ – OP',t:'Obe strany'});}
+  if(is('stavkupy',['Podpísaná rezervačná zmluva']))out.push({k:'Rezervačná zmluva',t:'Celá, vrátane príloh'});
+  if(is('stavkupy',['Podpísaná kúpna / budúca kúpna zmluva']))out.push({k:'Kúpna zmluva',t:'Alebo zmluva o budúcej kúpnej zmluve'});
+  out.push({k:'Znalecký posudok',t:'Ak už existuje – celý, aj s fotodokumentáciou. Inak ho zabezpečíme spolu.'});
+  if(is('ucel',['Výstavba domu','Rekonštrukcia / dostavba','Kombinácia účelov'])){out.push({k:'Stavebné povolenie',t:'Alebo ohlásenie drobnej stavby'});out.push({k:'Rozpočet stavby',t:'Položkový rozpočet, prípadne zmluva so stavebnou firmou'});}
+  if(is('ucel',['Refinancovanie existujúceho úveru','Kombinácia účelov']))out.push({k:'Zmluva o súčasnom úvere',t:'+ posledný výpis so zostatkom'});
+  if(yes('zav_ma'))out.push({k:'Zmluvy k záväzkom',t:'Úverové zmluvy alebo výpisy k úverom, ktoré sa budú vyplácať'});
+  if(is('z_rodstav',['Ženatý / vydatá'])&&is('z_bsm',['Zúžené notárskou zápisnicou','Zrušené']))out.push({k:'Notárska zápisnica k BSM',t:'Dohoda o zúžení alebo zrušení BSM'});
+  if(is('z_rodstav',['Rozvedený / rozvedená']))out.push({k:'Rozsudok o rozvode',t:'+ vyporiadanie BSM, ak bolo'});
+  return out;
+}
+function renderPoz(){
+  var ul=document.getElementById('poz');if(!ul)return;var list=pozadovane();
+  ul.innerHTML=list.map(function(x){var has=PRILOHY.some(function(p){return p.k===x.k;});return '<li class="'+(has?'ok':'')+'"><div class="pt"><b>'+esc(x.k)+'</b><span>'+esc(x.t)+'</span></div><button type="button" class="noprint" data-foto="'+esc(x.k)+'">Odfotiť</button><button type="button" class="sec noprint" data-file="'+esc(x.k)+'">Nahrať</button></li>';}).join('');
+  ul.querySelectorAll('[data-foto]').forEach(function(b){b.onclick=function(){UPLOAD_TAG=b.dataset.foto;document.getElementById('fFoto').click();};});
+  ul.querySelectorAll('[data-file]').forEach(function(b){b.onclick=function(){UPLOAD_TAG=b.dataset.file;document.getElementById('fFile').click();};});
+}
+function resizeImage(file){return new Promise(function(res,rej){
+  var img=new Image();var url=URL.createObjectURL(file);
+  img.onload=function(){var MAX=1800,w=img.width,h=img.height,s=Math.min(1,MAX/Math.max(w,h));w=Math.round(w*s);h=Math.round(h*s);var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);URL.revokeObjectURL(url);var data=c.toDataURL('image/jpeg',.82);res({name:file.name.replace(/\.[^.]+$/,'')+'.jpg',type:'image/jpeg',b64:data.split(',')[1]});};
+  img.onerror=function(){URL.revokeObjectURL(url);rej(new Error('obrázok sa nedá načítať'));};img.src=url;});}
+function readPdf(file){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res({name:file.name,type:'application/pdf',b64:r.result.split(',')[1]});};r.onerror=rej;r.readAsDataURL(file);});}
+async function addFiles(list,tag){
+  for(var i=0;i<list.length;i++){var f=list[i];
+    try{
+      var p;if(f.type==='application/pdf')p=await readPdf(f);else if(f.type.indexOf('image/')===0)p=await resizeImage(f);else{setStatus('Súbor '+f.name+' preskočený – podporované sú fotky a PDF.');continue;}
+      p.size=b64size(p.b64);var total=PRILOHY.reduce(function(a,x){return a+x.size;},0)+p.size;
+      if(total>MAX_TOTAL){setStatus('Prílohy sú spolu príliš veľké. Odstráňte niektorú alebo ju pošlite neskôr samostatne.');continue;}
+      if(tag){p.k=tag;var n=PRILOHY.filter(function(x){return x.k===tag;}).length+1;p.name=tag.replace(/[\\\/:*?"<>|]/g,'')+' '+n+(p.type==='application/pdf'?'.pdf':'.jpg');}
+      PRILOHY.push(p);
+    }catch(e){setStatus('Súbor '+f.name+' sa nepodarilo pridať.');}
+  }
+  renderPrilohy();renderPoz();refreshUploadCounts();
+}
+document.getElementById('btnFoto').onclick=function(){UPLOAD_TAG='';document.getElementById('fFoto').click();};
+document.getElementById('btnFile').onclick=function(){UPLOAD_TAG='';document.getElementById('fFile').click();};
+document.getElementById('fFoto').onchange=function(e){addFiles(Array.prototype.slice.call(e.target.files),UPLOAD_TAG);e.target.value='';};
+document.getElementById('fFile').onchange=function(e){addFiles(Array.prototype.slice.call(e.target.files),UPLOAD_TAG);e.target.value='';};
+
+/* ====== Odoslanie ====== */
+var ONLINE=!!KONZULTANT.url;
+var setStatus=function(m){document.getElementById('status').textContent=m;};
+if(!ONLINE){document.getElementById('fallback').hidden=false;}
+document.getElementById('kEmail').textContent=KONZULTANT.email;
+document.getElementById('hotovoKontakt').textContent=KONZULTANT.meno+(KONZULTANT.tel?' · '+KONZULTANT.tel:'')+' · '+KONZULTANT.email;
+function payload(){
+  state.datum=new Date().toISOString().slice(0,10);
+  return {typ:'uverovy',verzia:VERZIA,meno:((state.z_meno||'')+' '+(state.z_priezvisko||'')).trim(),email:state.z_email||'',tel:state.z_tel||'',ucel:state.ucel||'',vyska:state.vyska||'',data:state,reps:reps,suhrn:summary(),prilohy:PRILOHY.map(function(p){return {name:p.name,type:p.type,b64:p.b64};})};
+}
+function doneUI(){document.getElementById('hotovo').hidden=false;document.getElementById('btnSend').hidden=true;setStatus('');try{localStorage.removeItem(LSKEY);}catch(e){}document.getElementById('hotovo').scrollIntoView({behavior:'smooth'});}
+document.getElementById('btnSend').onclick=function(){
+  var m=missing();
+  if(m.length){m[0].el.scrollIntoView({behavior:'smooth',block:'center'});setStatus('Ešte chýba: '+m.map(function(x){return x.l;}).join('; '));return;}
+  if(!document.getElementById('v_pravda').checked||!document.getElementById('v_gdpr').checked){setStatus('Zaškrtnite prosím obe vyhlásenia na konci.');return;}
+  var btn=this;btn.disabled=true;var p=payload();
+  if(ONLINE){
+    setStatus('Odosielam… pri fotkách to môže trvať aj minútu, nechajte stránku otvorenú.');
+    fetch(KONZULTANT.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p),redirect:'follow'})
+      .then(function(r){return r.json();})
+      .then(function(r){btn.disabled=false;if(r&&r.ok)doneUI();else setStatus('Odoslanie sa nepodarilo: '+(r&&r.error||'neznáma chyba')+'. Skúste znova.');})
+      .catch(function(err){btn.disabled=false;setStatus('Odoslanie sa nepodarilo ('+(err&&err.message||err)+'). Skontrolujte internet a skúste znova, prípadne s menším počtom fotiek.');});
+  }else{
+    var meno=(p.meno||'klient').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9]+/g,'-').toLowerCase();
+    var name='uverovy-dotaznik-'+meno+'-'+new Date().toISOString().slice(0,10)+'.json';
+    var blob=new Blob([JSON.stringify(p)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
+    btn.disabled=false;setStatus('Súbor '+name+' je uložený vo Vašom zariadení – pošlite mi ho e-mailom na '+KONZULTANT.email+'.');
+  }
+};
+document.getElementById('btnClear').onclick=function(){var b=this;if(b.dataset.arm){try{localStorage.removeItem(LSKEY);}catch(e){}location.reload();}else{b.dataset.arm='1';b.textContent='Naozaj vymazať všetko? Klikni znova';}};
+document.getElementById('btnPdf').onclick=function(){window.print();};
+document.getElementById('btnSuhrn').onclick=function(){var p=document.getElementById('suhrn');p.textContent=summary();p.hidden=false;};
+document.getElementById('btnCopy').onclick=function(){var t=summary();try{navigator.clipboard.writeText(t).then(function(){setStatus('Súhrn je skopírovaný do schránky.');},function(){var p=document.getElementById('suhrn');p.textContent=t;p.hidden=false;setStatus('Súhrn je zobrazený – označ a skopíruj.');});}catch(e){var p=document.getElementById('suhrn');p.textContent=t;p.hidden=false;}};
+document.getElementById('imp').onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var j=JSON.parse(r.result);apply(j);PRILOHY.length=0;(j.prilohy||[]).forEach(function(p){p.size=b64size(p.b64);PRILOHY.push(p);});renderPrilohy();renderPoz();setStatus('Odpovede klienta sú načítané.');window.scrollTo({top:0});}catch(err){setStatus('Súbor sa nepodarilo prečítať – nie je to súbor z tohto dotazníka.');}};r.readAsText(f);};
+document.getElementById('kLink').onclick=function(e){e.preventDefault();var s=document.getElementById('s-konzultant');s.hidden=false;s.scrollIntoView({behavior:'smooth'});};
+if(location.hash==='#konzultant')document.getElementById('s-konzultant').hidden=false;
+
+document.getElementById('numPrilohy').textContent=SECTIONS.length+1;document.getElementById('numZaver').textContent=SECTIONS.length+2;
+load();render();renderPrilohy();
+</script>
+</body>
+</html>
