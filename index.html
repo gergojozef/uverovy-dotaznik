@@ -199,7 +199,7 @@ var VZD = ['Základné','Stredné bez maturity','Stredné s maturitou','Vyššie
 var BYV = ['Vo vlastnom','V nájme','U rodičov / rodiny','Služobný byt','Iné'];
 var PRIJ = ['Zamestnanec','Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme','Dôchodca','Rodičovský príspevok / materská','Bez príjmu','Iné'];
 var ZMLUVA = ['Doba neurčitá','Doba určitá','Dohoda','Služobný pomer (polícia, armáda…)','Agentúrne zamestnanie'];
-var PODN = ['SZČO – živnosť','s.r.o. – konateľ a spoločník','s.r.o. – len spoločník','s.r.o. – len konateľ','a.s.','Slobodné povolanie (lekár, advokát, umelec…)','Samostatne hospodáriaci roľník','Iné'];
+var PODN = ['SZČO – živnosť','s.r.o. – konateľ a spoločník','s.r.o. – len spoločník','s.r.o. – len konateľ','a.s.','Slobodné povolanie (lekár, advokát, umelec…)','Samostatne hospodáriaci roľník','Holding / skupina firiem','Iné'];
 var UCT = ['Paušálne výdavky 60 %','Skutočné výdavky – jednoduché účtovníctvo','Podvojné účtovníctvo','Neviem'];
 var ZAVTYP = ['Hypotéka','Spotrebný úver','Kreditná karta','Povolené prečerpanie (kontokorent)','Lízing / autoúver','Splátkový predaj','Stavebné sporenie – úver','Pôžička od fyzickej osoby','Firemný úver (ručím osobne)','Iné'];
 var NEHTYP = ['Byt','Rodinný dom','Stavebný pozemok','Rozostavaná stavba','Rekreačná chata / chalupa','Apartmán','Nebytový priestor','Iné'];
@@ -209,7 +209,7 @@ var TARCHY = ['Bez tiarch','Záložné právo banky','Vecné bremeno (doživotn�
 var DOKLADY = ['Občiansky preukaz (obe strany)','Potvrdenie o príjme od zamestnávateľa','Výpisy z osobného účtu za 3 – 6 mesiacov','Pracovná zmluva + dodatky','Daňové priznanie za posledné 2 roky + potvrdenie o podaní','Potvrdenie o zaplatení dane','Potvrdenie o nedoplatkoch – Sociálna poisťovňa','Potvrdenie o nedoplatkoch – zdravotná poisťovňa','Potvrdenie o nedoplatkoch – daňový úrad','Výpisy z podnikateľského účtu za 6 – 12 mesiacov','Účtovná závierka / výkazy','Rezervačná zmluva','Kúpna zmluva alebo návrh','List vlastníctva (LV)','Znalecký posudok','Stavebné povolenie / ohlásenie','Projektová dokumentácia','Rozpočet stavby / rekonštrukcie','Nájomná zmluva (príjem z prenájmu)','Zmluvy k existujúcim úverom','Rozhodnutie o výživnom / dôchodku','Sobášny list / rozsudok o rozvode / dohoda o BSM'];
 
 function T(id,label,o){o=o||{};o.id=id;o.label=label;o.type=o.type||'text';return o;}
-function N(id,label,o){o=o||{};o.type='number';o.unit=o.unit||EUR;return T(id,label,o);}
+function N(id,label,o){o=o||{};o.type='number';o.unit=(o.unit!==undefined?o.unit:EUR);return T(id,label,o);}
 function S(id,label,options,o){o=o||{};o.type='select';o.options=options;return T(id,label,o);}
 function C(id,label,options,o){o=o||{};o.type='chips';o.options=options;return T(id,label,o);}
 function M(id,label,options,o){o=o||{};o.type='multi';o.options=options;return T(id,label,o);}
@@ -240,6 +240,10 @@ function osobaFields(p,isCo){
     N(p+'deti','Počet vyživovaných detí',{unit:'',hint:'Vrátane detí, na ktoré platíte výživné.'}),
     T(p+'detivek','Vek detí (napr. 3, 7, 12)'),
     N(p+'osoby','Počet osôb v domácnosti spolu',{unit:''}),
+    YN(p+'vyzivne','Platíte výživné?'),
+    N(p+'vyzivnesuma','Mesačná suma výživného',{sh:[p+'vyzivne',['Áno']]}),
+    C(p+'vyzivneurcenie','Výživné je určené',['Súdom','Dohodou'],{sh:[p+'vyzivne',['Áno']]}),
+    UP(p+'up_vyzivne','Nahrať rozhodnutie súdu alebo dohodu o výživnom',(isCo?'Spolužiadateľ – ':'')+'Rozhodnutie o výživnom',{sh:[p+'vyzivne',['Áno']]}),
   ];
   return f;
 }
@@ -282,13 +286,30 @@ function prijemFields(p,isCo){
     T(p+'fcinnost','Predmet činnosti (čo firma reálne robí)',{wide:true,sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
     N(p+'fpodiel','Váš podiel v spoločnosti',{unit:'%',sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
     N(p+'fzam','Počet zamestnancov',{unit:'',sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
-    T(p+'finefirmy','Ďalšie firmy, v ktorých máte podiel alebo ste konateľ (názov, IČO, podiel)',{wide:true,sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    H('Skupina firiem'),
+    NOTE('Vyplňte, ak máte podiel alebo funkciu vo viacerých firmách alebo podnikáte cez holding.'),
+    YN(p+'fineviac','Máte podiel alebo funkciu aj v ďalších firmách?',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    T(p+'fmaterska','Materská / holdingová spoločnosť – obchodné meno',{sh:[p+'ftyp',['Holding / skupina firiem']]}),
+    T(p+'fmaterskaico','IČO materskej spoločnosti',{sh:[p+'ftyp',['Holding / skupina firiem']]}),
+    N(p+'fmaterskapodiel','Váš podiel v materskej spoločnosti',{unit:'%',sh:[p+'ftyp',['Holding / skupina firiem']]}),
+    {type:'repeat',id:p+'firmy',label:'Firma',add:'Pridať firmu',sh:[[p+'fineviac',['Áno']],[p+'ftyp',['Holding / skupina firiem']]],fields:[
+      T('meno','Obchodné meno'),T('ico','IČO'),
+      S('rola','Vaša rola',['Konateľ','Spoločník','Konateľ a spoločník','Akcionár','Len cez materskú firmu']),
+      N('podiel','Váš priamy podiel',{unit:'%'}),N('podielcez','Podiel cez materskú firmu',{unit:'%'}),
+      N('trzby','Tržby za posledný rok'),N('zisk','Zisk po zdanení za posledný rok'),
+      YN('prijem','Vyplácate si z tejto firmy príjem?'),T('prijemforma','Forma príjmu (odmena, mzda, dividendy…)',{sh:['prijem',['Áno']]}),N('prijemsuma','Čistá suma mesačne',{sh:['prijem',['Áno']]}),
+      YN('uvery','Má firma úvery, lízingy alebo kontokorent?')
+    ]},
     M(p+'fprijemforma','Ako si vyplácate príjem z firmy',['Odmena konateľa','Mzda zamestnanca vlastnej firmy','Podiel na zisku (dividendy)','Faktúrujem firme cez živnosť','Prenajímam firme majetok','Zatiaľ si nevyplácam nič'],{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    T(p+'fprijemz','Z ktorej firmy si vyplácate osobný príjem',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    T(p+'fprijemod','Odkedy si tento príjem vyplácate (mesiac / rok)',{hint:'Banky pozerajú históriu príjmu – ak ste si ho nedávno zvýšili, uveďte aj od kedy.',sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
     N(p+'fodmena','Odmena konateľa / mzda z vlastnej firmy – čistá mesačne',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
-    N(p+'fdiv1','Vyplatený podiel na zisku za posledný rok (ak si ho vyplácate)',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fdiv1','Vyplatený podiel na zisku za posledný rok – v čistom (po zrážke dane)',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
     S(p+'fuct','Spôsob uplatnenia výdavkov / účtovníctvo',UCT,{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
     N(p+'fobrat1','Tržby / obrat za posledný uzavretý rok',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
     N(p+'fobrat2','Tržby / obrat za predposledný rok',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fzisk1','Zisk po zdanení za posledný uzavretý rok',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
+    N(p+'fzisk2','Zisk po zdanení za predposledný rok',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
     T(p+'fdproky','Za ktoré roky máte podané daňové priznanie',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
     YN(p+'fdpodlozene','Je posledné daňové priznanie podané a daň zaplatená?',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
     YN(p+'fodklad','Mali ste odklad daňového priznania?',{sh:[p+'ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]}),
@@ -329,7 +350,7 @@ function prijemFields(p,isCo){
 var SECTIONS=[
  {id:'uver',title:'Požadovaný úver',lead:'Čo chcete financovať a za akých podmienok. Bez presných čísel stačí odhad; konzultant ich s Vami doladí.',fields:[
    C('ucel','Účel úveru',UCELY,{req:true,wide:true}),
-   T('ucelpopis','Upresnenie účelu (pri kombinácii alebo rekonštrukcii napíš, čo všetko)',{wide:true}),
+   T('ucelpopis','Upresnenie účelu (pri kombinácii alebo rekonštrukcii napíšte, čo všetko)',{wide:true}),
    S('stavkupy','V akej fáze je kúpa',STAV),
    D('termin','Dokedy potrebujete mať úver schválený'),
    N('kupnacena','Kúpna cena / rozpočet'),N('vyska','Požadovaná výška úveru',{req:true}),
@@ -341,11 +362,15 @@ var SECTIONS=[
    M('banky','Banky, kde už máte účet alebo úver',['Slovenská sporiteľňa','VÚB','Tatra banka','ČSOB','UniCredit','mBank','365.bank','Prima banka','Fio','Iná']),
    YN('inaponuka','Máte už ponuku z inej banky alebo od iného sprostredkovateľa?'),
    T('inaponukainfo','Banka, sadzba, výška, podmienky',{wide:true,sh:['inaponuka',['Áno']]}),
-   YN('zamietnute','Bola Vám v posledných 12 mesiacoch zamietnutá žiadosť o úver?'),
-   T('zamietnuteinfo','Kde a z akého dôvodu',{wide:true,sh:['zamietnute',['Áno']]}),
    YN('poistenie','Chcete riešiť k úveru aj poistenie schopnosti splácať alebo poistenie nehnuteľnosti?'),
+   H('Kupovaná nehnuteľnosť'),
+   YN('n_posudok','Znalecký posudok už existuje?',{sh:['ucel',['Kúpa bytu','Kúpa rodinného domu','Kúpa pozemku','Kombinácia účelov']]}),
+   N('n_posudokhodnota','Hodnota podľa posudku',{sh:['n_posudok',['Áno']]}),
+   C('n_posudokkto','Kto ho dal vypracovať',['Predávajúci','Ja','Banka'],{sh:['n_posudok',['Áno']]}),
    H('Výstavba a rekonštrukcia'),
    NOTE('Vyplňte pri výstavbe, dostavbe alebo rekonštrukcii.'),
+   C('rk_stav','Stav stavby',['Bývateľná','Rozostavaná','Čiastočne zbúraná'],{sh:['ucel',['Rekonštrukcia / dostavba','Kombinácia účelov']]}),
+   C('rk_kataster','Je aktuálny stav stavby zapísaný na katastri?',['Áno','Nie','Neviem'],{sh:['ucel',['Rekonštrukcia / dostavba','Kombinácia účelov']]}),
    N('n_rozpocet','Celkový rozpočet prác',{sh:['ucel',['Výstavba domu','Rekonštrukcia / dostavba','Kombinácia účelov']]}),
    C('n_povolenie','Stavebné povolenie / ohlásenie',['Vydané, právoplatné','Podané','Ešte nie','Netreba'],{sh:['ucel',['Výstavba domu','Rekonštrukcia / dostavba','Kombinácia účelov']]}),
    C('n_kto','Kto stavia',['Stavebná firma na kľúč','Svojpomocne','Kombinácia'],{sh:['ucel',['Výstavba domu','Rekonštrukcia / dostavba','Kombinácia účelov']]}),
@@ -370,13 +395,28 @@ var SECTIONS=[
  ].concat(osobaFields('sz_',true))},
  {id:'prijem',title:'Príjem žiadateľa',lead:'Banka posudzuje príjem podľa toho, odkiaľ pochádza. Vyplňte všetko, čo sa Vás týka; časti, ktoré sa Vás netýkajú, sa skryjú.',fields:prijemFields('z_',false)},
  {id:'prijemsz',title:'Príjem spolužiadateľa',lead:'Rovnaké otázky pre spolužiadateľa.',dependsOn:'sz_on',fields:prijemFields('sz_',true)},
+ {id:'historia',title:'História podnikania',lead:'Banky si pri podnikateľoch preverujú aj minulé firmy a záväzky. Čo uvediete sami, vieme vysvetliť vopred; čo nájdu samy, pôsobí horšie.',showSec:[['z_ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']],['sz_ptyp',['Majiteľ firmy / SZČO','Zamestnanec vo vlastnej firme']]],fields:[
+   YN('h_byval','Boli ste v posledných 10 rokoch konateľom, spoločníkom alebo akcionárom vo firme, ktorú už nevlastníte alebo ktorá zanikla?',{wide:true}),
+   {type:'repeat',id:'hfirmy',label:'Bývalá firma',add:'Pridať ďalšiu firmu',sh:['h_byval',['Áno']],fields:[
+     T('nazov','Názov'),T('ico','IČO'),S('rola','Vaša rola',['Konateľ','Spoločník','Konateľ a spoločník','Akcionár']),
+     T('od','Obdobie od (mesiac / rok)'),T('do','Obdobie do (mesiac / rok)'),
+     S('koniec','Ako sa Vaše pôsobenie skončilo',['Predaj podielu','Zlúčenie','Likvidácia','Konkurz','Odstúpenie z funkcie','Firma stále existuje, už nie som vo vedení'])
+   ]},
+   YN('h_zle','Mala niektorá z týchto firiem úver, lízing alebo iný záväzok, ktorý nebol splácaný riadne?',{wide:true,sh:['h_byval',['Áno']]}),
+   T('h_zleinfo','Banka alebo veriteľ, výška, rok, ako to dopadlo, Vaša osobná účasť (ručili ste? podpisovali ste?)',{wide:true,sh:['h_zle',['Áno']]}),
+   YN('h_odmietnuti','Odmietla Vás v posledných 5 rokoch banka, lízingová spoločnosť alebo iný veriteľ pri financovaní Vás alebo Vašej firmy?',{wide:true}),
+   T('h_odmietnutiinfo','Banka, rok, dôvod (ak ho poznáte)',{wide:true,sh:['h_odmietnuti',['Áno']]}),
+   YN('h_registre','Máte vytiahnutý výpis z úverových registrov (SRBI / NRKI)?'),
+   D('h_registredatum','Dátum výpisu',{sh:['h_registre',['Áno']]}),
+   UP('up_registre','Nahrať výpis z úverových registrov','Výpis z úverových registrov',{sh:['h_registre',['Áno']]}),
+ ]},
  {id:'zavazky',title:'Existujúce záväzky',lead:'Všetky úvery, karty a prečerpania oboch žiadateľov, aj tie, ktoré sa z nového úveru vyplatia. Banka ich vidí v úverových registroch; zamlčanie škodí viac než vysoká splátka.',fields:[
    YN('zav_ma','Máte vy alebo spolužiadateľ nejaké úvery, kreditné karty, kontokorent alebo lízing?',{req:true}),
    NOTE('Každý úver, kreditnú kartu, povolené prečerpanie aj lízing uveďte ako samostatný záväzok. Pri kartách a prečerpaní je rozhodujúci limit, nie vyčerpaná suma.'),
    {type:'repeat',id:'zav',label:'Záväzok',add:'Pridať ďalší záväzok',sh:['zav_ma',['Áno']],fields:[
-     S('typ','Typ',ZAVTYP),T('kto','Koho je (žiadateľ / spolužiadateľ / spoločný)'),T('veritel','Veriteľ (banka, spoločnosť, osoba)'),
-     N('zostatok','Aktuálny zostatok (úver, lízing)'),N('limit','Limit (kreditná karta, prečerpanie)'),N('cerpane','Vyčerpané z limitu'),N('splatka','Mesačná splátka'),
-     D('koniec','Splatný do'),YN('vyplatit','Vyplatí sa z nového úveru?'),YN('zrusit','Zruší sa pred podaním žiadosti?'),YN('omeskanie','Bolo omeškanie so splátkou?')
+     S('typ','Typ',ZAVTYP),T('kto','Koho je (žiadateľ / spolužiadateľ / spoločný)'),T('veritel','Banka / veriteľ'),
+     N('zostatok','Aktuálny zostatok (úver, lízing)'),N('limit','Limit (kreditná karta, prečerpanie)'),N('cerpane','Vyčerpané z limitu'),N('splatka','Mesačná splátka'),N('sadzba','Úroková sadzba',{unit:'% p. a.'}),
+     D('koniec','Konečná splatnosť'),D('fixkoniec','Koniec fixácie (hypotéka)'),T('zabezpecenie','Čím je zabezpečený (nehnuteľnosť, auto, bez zabezpečenia)'),YN('vyplatit','Vyplatí sa z nového úveru?'),YN('zrusit','Zruší sa pred podaním žiadosti?'),YN('omeskanie','Bolo omeškanie so splátkou?')
    ]},
    YN('zav_rucitel','Ste ručiteľ alebo spoludlžník v cudzom úvere?'),
    T('zav_rucitelinfo','Komu, kde, aký zostatok a splátka',{wide:true,sh:['zav_rucitel',['Áno']]}),
@@ -390,8 +430,8 @@ var SECTIONS=[
  {id:'majetok',title:'Iná nehnuteľnosť',lead:'Nehnuteľnosti, ktoré už vlastníte vy alebo spolužiadateľ. Dôležité pre dozabezpečenie úveru a pre prípad, že kupujete ďalšie bývanie.',fields:[
    YN('m_neh','Vlastníte vy alebo spolužiadateľ nejakú nehnuteľnosť?',{req:true}),
    {type:'repeat',id:'mneh',label:'Nehnuteľnosť',add:'Pridať ďalšiu nehnuteľnosť',sh:['m_neh',['Áno']],fields:[
-     S('typ','Typ',NEHTYP),T('adresa','Adresa / obec'),T('vlastnik','Vlastník a podiel'),N('hodnota','Odhadovaná hodnota'),
-     YN('zalozena','Je založená v prospech banky?'),YN('prenajom','Prenajíma sa?'),YN('dozabezpecenie','Dá sa použiť ako ďalšie zabezpečenie?'),YN('predaj','Plánujete ju predať?')
+     S('typ','Typ',NEHTYP),T('adresa','Adresa / obec'),T('vlastnik','Vlastník a podiel'),T('lv','Číslo listu vlastníctva'),N('hodnota','Odhadovaná hodnota'),D('posudokdatum','Dátum posledného znaleckého posudku'),
+     YN('zalozena','Je založená v prospech banky?'),T('zalozenabanka','Ktorá banka',{sh:['zalozena',['Áno']]}),YN('prenajom','Prenajíma sa?'),YN('dozabezpecenie','Dá sa použiť ako ďalšie zabezpečenie?'),YN('predaj','Plánujete ju predať?')
    ]},
  ]},
  {id:'doklady',title:'Doklady',lead:'Označte, čo už máte pripravené. Zoznam je široký; konzultant Vám povie, čo z neho banka reálne vyžaduje vo Vašom prípade.',fields:[
@@ -437,7 +477,7 @@ function fieldHTML(f,prefix){
 }
 function repeatHTML(f){
   var rows=reps[f.id]||[];
-  var h='<div class="rep" data-rep="'+f.id+'">';
+  var h='<div class="rep" data-rep="'+f.id+'" data-id="'+esc(f.id)+'">';
   rows.forEach(function(rid,i){
     h+='<div class="row" data-row="'+rid+'"><div class="rowhead"><span>'+esc(f.label)+' '+(i+1)+'</span><button type="button" class="rm noprint" data-rm="'+f.id+':'+rid+'">Odstrániť</button></div><div class="grid">';
     f.fields.forEach(function(sf){h+=fieldHTML(sf,f.id+'.'+rid);});
@@ -466,9 +506,9 @@ function collectAllFields(){
   });});
   return out;
 }
-function visibleSec(s){return s.dependsOn?!!state[s.dependsOn]:true;}
+function visibleSec(s){if(s.dependsOn&&!state[s.dependsOn])return false;if(s.showSec)return s.showSec.some(function(c){return showIf(c,'');});return true;}
 function showIf(sh,prefix){
-  if(!sh)return true;var key=sh[0];
+  if(!sh)return true;if(Array.isArray(sh[0]))return sh.some(function(c){return showIf(c,prefix);});var key=sh[0];
   if(prefix&&state[prefix+'.'+key]!==undefined)key=prefix+'.'+key;
   return sh[1].indexOf(state[key])>=0;
 }
@@ -483,7 +523,7 @@ function applyVisibility(){
     secEl.classList.toggle('hidden',!visibleSec(s));
     var body=secEl.querySelector('[data-body]');
     if(s.toggle)body.classList.toggle('hidden',!state[s.toggle]);
-    secEl.querySelectorAll('.q[data-id]').forEach(function(el){
+    secEl.querySelectorAll('[data-id]').forEach(function(el){
       var id=el.dataset.id;var meta=findField(id);if(!meta)return;
       var prefix=id.indexOf('.')>0?id.substring(0,id.lastIndexOf('.')):'';
       el.classList.toggle('hidden',!showIf(meta.f.sh,prefix));
@@ -498,13 +538,17 @@ function applyVisibility(){
       }
     }
   });
-  progress();renderPoz();
+  renumber();progress();renderPoz();
+}
+function renumber(){
+  var n=0;SECTIONS.forEach(function(s){var el=document.getElementById('s_'+s.id);if(!el||el.classList.contains('hidden'))return;n++;el.querySelector('.num').textContent=n;});
+  document.getElementById('numPrilohy').textContent=n+1;document.getElementById('numZaver').textContent=n+2;
 }
 function filled(v){return v!==undefined&&v!==''&&v!==null&&!(Array.isArray(v)&&!v.length);}
 function progress(){
   var tot=0,done=0;
   collectAllFields().forEach(function(x){
-    var el=document.querySelector('.q[data-id="'+x.id+'"]');if(!el||el.classList.contains('hidden'))return;
+    var el=document.querySelector('.q[data-id="'+x.id+'"]');if(!el||el.classList.contains('hidden')||el.closest('.rep.hidden'))return;
     var sec=document.getElementById('s_'+x.sec.id);if(sec&&sec.classList.contains('hidden'))return;
     if(x.f.type==='docs'||x.f.type==='upload')return;tot++;if(filled(state[x.id]))done++;
   });
@@ -518,9 +562,10 @@ function onChange(e){
   var t=e.target;if(!t)return;
   if(t.id&&t.id.indexOf('i_')===0&&t.type==='checkbox'&&t.closest('.toggle')){state[t.id.substring(2)]=t.checked;applyVisibility();save();return;}
   var f=t.closest('.q[data-id]');if(!f)return;var id=f.dataset.id;
-  if(t.type==='radio'){state[id]=t.value;if(id==='zav_ma'&&t.value==='Áno'&&!reps.zav.length){reps.zav.push('r'+Date.now());rerenderRep('zav');}if(id==='m_neh'&&t.value==='Áno'&&!reps.mneh.length){reps.mneh.push('r'+Date.now());rerenderRep('mneh');}}
+  if(t.type==='radio'){state[id]=t.value;var AUTO={zav_ma:'zav',m_neh:'mneh',h_byval:'hfirmy',z_fineviac:'z_firmy',sz_fineviac:'sz_firmy'};if(AUTO[id]&&t.value==='Áno'){var rk=AUTO[id];if(!reps[rk])reps[rk]=[];if(!reps[rk].length){reps[rk].push('r'+Date.now());rerenderRep(rk);}}}
   else if(t.type==='checkbox'){var arr=[];f.querySelectorAll('input:checked').forEach(function(c){arr.push(c.value);});state[id]=arr;}
   else state[id]=t.value;
+  if(t.tagName==='SELECT'&&/ftyp$/.test(id)&&t.value==='Holding / skupina firiem'){var fk=id.replace('ftyp','firmy');if(!reps[fk])reps[fk]=[];if(!reps[fk].length){reps[fk].push('r'+Date.now());rerenderRep(fk);}}
   f.classList.remove('invalid');
   if(e.type==='change'||t.type==='radio'||t.type==='checkbox'||t.tagName==='SELECT')applyVisibility();else progress();
   save();
@@ -528,7 +573,7 @@ function onChange(e){
 formEl.addEventListener('click',function(e){
   var uf=e.target.closest('[data-ufoto]');if(uf){UPLOAD_TAG=uf.dataset.ufoto;document.getElementById('fFoto').click();return;}
   var ul=e.target.closest('[data-ufile]');if(ul){UPLOAD_TAG=ul.dataset.ufile;document.getElementById('fFile').click();return;}
-  var add=e.target.closest('[data-add]');if(add){var k=add.dataset.add;reps[k].push(String(Date.now()).slice(-6)+Math.floor(Math.random()*100));rerenderRep(k);save();return;}
+  var add=e.target.closest('[data-add]');if(add){var k=add.dataset.add;if(!reps[k])reps[k]=[];reps[k].push(String(Date.now()).slice(-6)+Math.floor(Math.random()*100));rerenderRep(k);save();return;}
   var rm=e.target.closest('[data-rm]');if(rm){var p=rm.dataset.rm.split(':');reps[p[0]]=reps[p[0]].filter(function(x){return x!==p[1];});Object.keys(state).forEach(function(key){if(key.indexOf(p[0]+'.'+p[1]+'.')===0)delete state[key];});rerenderRep(p[0]);save();}
 });
 function rerenderRep(k){
@@ -557,14 +602,15 @@ function summary(){
   lines.push('ÚVEROVÝ DOTAZNÍK · '+KONZULTANT.meno+' · verzia '+VERZIA);
   lines.push('Klient: '+((state.z_meno||'')+' '+(state.z_priezvisko||'')).trim()+' | Tel.: '+(state.z_tel||'')+' | E-mail: '+(state.z_email||''));
   lines.push('Vyplnené: '+new Date().toLocaleString('sk-SK'));
-  SECTIONS.forEach(function(s,i){
-    if(!visibleSec(s))return;
+  var sn=0;
+  SECTIONS.forEach(function(s){
+    if(!visibleSec(s))return;sn++;var i=sn-1;
     if(s.toggle&&!state[s.toggle]){lines.push('');lines.push((i+1)+'. '+s.title.toUpperCase()+': nie');return;}
     var block=[];
     s.fields.forEach(function(f){
       if(f.type==='h'){block.push({h:f.label});return;}
       if(f.type==='note'||f.type==='upload')return;
-      if(f.type==='repeat'){(reps[f.id]||[]).forEach(function(rid,ri){var rl=[];f.fields.forEach(function(sf){var v=fmt(state[f.id+'.'+rid+'.'+sf.id],sf);if(v)rl.push(sf.label+': '+v);});if(rl.length)block.push({l:f.label+' '+(ri+1),v:rl.join(' | ')});});return;}
+      if(f.type==='repeat'){if(!showIf(f.sh,''))return;(reps[f.id]||[]).forEach(function(rid,ri){var rl=[];f.fields.forEach(function(sf){if(!showIf(sf.sh,f.id+'.'+rid))return;var v=fmt(state[f.id+'.'+rid+'.'+sf.id],sf);if(v)rl.push(sf.label+': '+v);});if(rl.length)block.push({l:f.label+' '+(ri+1),v:rl.join(' | ')});});return;}
       if(f.type==='docs'){var a=state[f.id];if(Array.isArray(a)&&a.length)block.push({l:'Pripravené doklady',v:a.join('; ')});return;}
       var el=document.querySelector('.q[data-id="'+f.id+'"]');if(el&&el.classList.contains('hidden'))return;
       var v=fmt(state[f.id],f);if(v)block.push({l:f.label,v:v});
