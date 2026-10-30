@@ -184,7 +184,10 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <div class="q" data-id="s_meno"><label class="lbl" for="s_meno">Obchodné meno <span class="req">*</span></label><input type="text" id="s_meno"></div>
       <div class="q" data-id="s_ico"><label class="lbl" for="s_ico">IČO <span class="req">*</span></label><input type="text" id="s_ico" inputmode="numeric"></div>
     </div>
-    <div class="q" data-id="s_trzby1"><label class="lbl" for="s_trzby1">Tržby za posledné zdaňovacie obdobie <span class="req">*</span></label><div class="unit"><input type="number" inputmode="numeric" id="s_trzby1"><span>€</span></div><span class="hint">Podľa daňového priznania.</span></div>
+    <div class="two">
+      <div class="q" data-id="s_trzby1"><label class="lbl" for="s_trzby1">Tržby za posledné zdaňovacie obdobie <span class="req">*</span></label><div class="unit"><input type="number" inputmode="numeric" id="s_trzby1"><span>€</span></div><span class="hint">Podľa daňového priznania.</span></div>
+      <div class="q" data-id="s_trzby0"><label class="lbl" for="s_trzby0">Tržby v tomto roku doteraz</label><div class="unit"><input type="number" inputmode="numeric" id="s_trzby0"><span>€</span></div><span class="hint">Od januára do dnes, odhad stačí.</span></div>
+    </div>
     <div class="q" data-id="s_vydavky"><span class="lbl">Výdavky uplatňujete</span>
       <div class="opts"><label><input type="radio" name="s_vydavky" value="Paušálne">Paušálne</label><label><input type="radio" name="s_vydavky" value="Skutočné">Skutočné</label></div></div>
   </div>
